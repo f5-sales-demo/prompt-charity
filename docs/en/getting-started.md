@@ -3,7 +3,7 @@ title: Getting started
 description: Use a reusable planning prompt in your chosen harness.
 ---
 
-1. Choose a prompt from the [use case catalog](../use-cases/).
+1. Choose a prompt from the [use case catalog](/prompt-charity/en/use-cases/).
 2. Replace every bracketed input with your objective, context, constraints, and available evidence.
 3. Enable your harness's planning mode before submitting the prompt. Claude Code, Codex CLI, and OpenCode are examples of harnesses; consult your installed version's documentation for its planning controls.
 4. Copy only the prompt block. No harness-specific command or plugin is required by the prompt text.
