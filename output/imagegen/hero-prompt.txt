@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: landing page hero illustration for Prompt Charity, a freely shared library of categorized AI planning prompts
+Primary request: a welcoming editorial illustration of an open library of blank prompt cards becoming an orderly plan, representing generosity through sharing ideas and careful interpretation
+Subject: a small open book, layered rounded paper cards with simple line symbols for discovery, code, operations, documentation and verification, connected into a clear sequence
+Style/medium: polished dimensional paper illustration, refined soft shadows, restrained detail, warm ivory with muted teal and amber accents
+Composition/framing: landscape 3:2, single coherent cluster centered, generous clean margins, readable at a 480 pixel display width
+Lighting/mood: soft studio lighting, thoughtful, approachable
+Constraints: no text, letters, numbers, logos, watermarks, vendor branding, screenshots, terminal windows or faces; no charitable-organization or fundraising imagery

@@ -1,0 +1,37 @@
+---
+title: Prompt Charity
+description: Categorized, harness-agnostic prompts for reviewable plans before implementation.
+template: splash
+hero:
+  title: Useful prompts, freely shared.
+  tagline: Choose a use case. Bring your context. Review a clear plan in the AI harness you prefer.
+  actions:
+    - text: Browse use cases
+      link: /prompt-charity/en/use-cases/
+      variant: primary
+    - text: How to use a prompt
+      link: /prompt-charity/en/getting-started/
+      variant: secondary
+---
+
+import { CardGrid } from '@astrojs/starlight/components';
+import LinkCard from '@f5-sales-demo/docs-theme/components/LinkCard.astro';
+
+## Start with an outcome
+
+Prompt Charity is an English library of reusable planning prompts. The copyable text works independently of harness commands, provider tools, plugins, and operating systems.
+
+<CardGrid>
+  <LinkCard icon="carbon:search" title="Discovery" description="Planning prompts for discovery use cases." href="/prompt-charity/en/use-cases/discovery/" />
+  <LinkCard icon="carbon:code" title="Development" description="Planning prompts for development use cases." href="/prompt-charity/en/use-cases/development/" />
+  <LinkCard icon="carbon:settings" title="Operations" description="Planning prompts for operations use cases." href="/prompt-charity/en/use-cases/operations/" />
+  <LinkCard icon="carbon:security" title="Security" description="Planning prompts for security use cases." href="/prompt-charity/en/use-cases/security/" />
+  <LinkCard icon="carbon:document" title="Documentation" description="Planning prompts for documentation use cases." href="/prompt-charity/en/use-cases/documentation/" />
+  <LinkCard icon="carbon:task" title="Delivery" description="Planning prompts for delivery use cases." href="/prompt-charity/en/use-cases/delivery/" />
+</CardGrid>
+
+## Share useful prompts. Interpret intent carefully.
+
+We use the name Prompt Charity to combine sharing useful prompts with charitable interpretation: understand the strongest reasonable version of a user's intent, clarify ambiguity, and preserve their constraints. Read [about the name](/prompt-charity/en/about/).
+
+The library produces plans for review. Implementation requires a separate decision and authorization. See [getting started](/prompt-charity/en/getting-started/) and the [prompt template](/prompt-charity/en/prompt-template/).

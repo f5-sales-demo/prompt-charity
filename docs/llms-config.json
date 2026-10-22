@@ -1,0 +1,9 @@
+{
+  "title": "Prompt Charity",
+  "description": "Categorized, harness-agnostic prompts for reviewable plans before implementation.",
+  "promote": [
+    "index*",
+    "getting-started*",
+    "prompt-template*"
+  ]
+}

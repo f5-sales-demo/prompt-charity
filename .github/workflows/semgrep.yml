@@ -1,0 +1,63 @@
+---
+name: Semgrep
+
+# Dedicated SAST: semantic static analysis for logic/security defects that
+# Biome/tsc/Ruff cannot find (taint flow, injection classes, unsafe APIs).
+#
+# Managed by docs-control and synced ONLY to code-bearing repos — see the
+# managed_files entry with "only_repos" in .github/config/repo-settings.json.
+# Content/demo repos are excluded deliberately: they would produce noise, not signal.
+#
+# Findings are advisory and surface in the repository Security tab through SARIF.
+# Scanner execution errors still fail the job; an unavailable or broken scan must
+# never be reported as success.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: managed-socketless
+    permissions:
+      contents: read # checkout the source to scan
+      security-events: write # upload SARIF to Code Scanning
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Semgrep scan (advisory)
+        run: |
+          # Registry rulesets: p/default (curated, cross-language) plus language
+          # packs. A pack for a language a repo does not use simply yields no
+          # findings, so one template serves every code-bearing repo.
+          # Findings remain advisory because --error is intentionally absent.
+          # Excluded rules (categorically inapplicable — exclude at config level
+          # rather than dismissing the same alert in every repo forever):
+          #   python3x-compatibility-* : flags Python 3.6+ APIs as "too new". Every
+          #     Python package in this fleet declares requires-python >= 3.11, so
+          #     these can only ever be false positives.
+          pipx run semgrep scan \
+            --config p/default \
+            --config p/typescript \
+            --config p/golang \
+            --exclude-rule python.lang.compatibility.python36.python36-compatibility-Popen1 \
+            --exclude-rule python.lang.compatibility.python36.python36-compatibility-Popen2 \
+            --sarif --output semgrep.sarif
+
+      - name: Upload SARIF to Code Scanning
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
