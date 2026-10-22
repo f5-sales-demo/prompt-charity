@@ -1,0 +1,15 @@
+{
+  "mode": "CLI fallback with approved gateway file-response adapter",
+  "model": "gpt-image-1",
+  "size": [
+    1536,
+    1024
+  ],
+  "quality": "high",
+  "prompt": "hero-prompt.txt",
+  "source_sha256": "2b19e9e224a068a4e739bc34ec9e7e6663de7cc55c325e0761ae38684692c191",
+  "published": [
+    "docs/images/hero-960.webp",
+    "docs/images/hero-480.webp"
+  ]
+}
