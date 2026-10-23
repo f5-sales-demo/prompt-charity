@@ -46,4 +46,14 @@ Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/operations/gc
 
 ## Qualification status
 
-Fresh qualification of this candidate is pending. Source validation does not establish live deployment compatibility. Sanitized qualification receipts will identify the exact prompt hash, harness/version, location, provider/image identities, completion gates and cleanup results; raw transcripts remain private.
+This canonical prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode, received scoped implementation approval, passed all three completion gates, and finished independently verified teardown before the next run.
+
+Canonical SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
+
+| Harness | Zone | Gates and cleanup | Sanitized evidence |
+| --- | --- | --- | --- |
+| Claude Code 2.1.308 on macOS | `us-east4-a` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/claude-code-macos.json) |
+| Codex CLI 0.162.1 on Ubuntu | `europe-west1-b` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/codex-cli-ubuntu.json) |
+| OpenCode 1.18.18 on Ubuntu | `asia-southeast1-a` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/opencode-ubuntu.json) |
+
+Receipts record the exact provider/image identities, gate evidence, recovery notes and cleanup results. OpenCode used a task-local Google Vertex configuration with existing ADC. Failed and superseded attempts, sensitive state, metadata and raw transcripts remain private. These results qualify this prompt hash; recheck prerequisites and current release/image identities for your own deployment.
