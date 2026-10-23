@@ -165,7 +165,7 @@ class IamTests(unittest.TestCase):
         requests = self.requests
         responses = self.responses
 
-        class FixtureObserver(support.GcpIamObserver):
+        class FixtureTransport:
             def command_token(self, argv):
                 if "application-default" in argv:
                     return sentinel + "-adc"
@@ -209,7 +209,20 @@ class IamTests(unittest.TestCase):
                     {"name": selection["deployment_project"]}
                 ).encode()
 
-        return FixtureObserver(self.selection, "f5xc-ce-crt-synthetic-byol")
+        transport = FixtureTransport()
+        with mock.patch.multiple(
+            support.GcpIamObserver,
+            command_token=transport.command_token,
+            token_identity=transport.token_identity,
+        ):
+            observer = support.GcpIamObserver(
+                self.selection, "f5xc-ce-crt-synthetic-byol"
+            )
+        observer.command_token = transport.command_token
+        observer.token_identity = transport.token_identity
+        observer.request = transport.request
+        observer.adc_metadata = transport.adc_metadata
+        return observer
 
     def preflight(self):
         return support.iam_preflight(
