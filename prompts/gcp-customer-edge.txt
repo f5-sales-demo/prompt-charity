@@ -498,6 +498,10 @@ Completion requires evidence for ALL three gates:
 2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
    node's ens4=site_local_network (SLO, primary=true) and
    ens5=site_local_inside_network (SLI, primary=false), matched to the owned VM NICs.
+   Read spec.gcp.not_managed.node_list[].interface_list[]: the role is under
+   network_option.site_local_network or network_option.site_local_inside_network,
+   with name, ethernet_interface.device/mac and is_primary alongside it. Do not
+   look for the role at the interface's top level or assume a reported IP field.
 3. A POST-registration terraform plan -detailed-exitcode returns 0. Exit 1 is error;
    exit 2 is drift. Never apply that drift blindly or call an earlier clean plan success.
 
@@ -522,3 +526,11 @@ without the exact object proves absence; transport errors, malformed responses o
 empty unvalidated output do not. Bound XC deletion checks and preserve failures.
 Do not clean by broad prefix or delete unrelated resources. Report cleanup as
 incomplete until all owned resources and the XC site are independently absent.
+If a destroy command loses transport while polling an operation, it does not
+prove deletion failed. Preserve the failure, re-read the exact resource and
+operation using the selected identity, then create and inspect a NEW saved
+destroy plan for only the remaining state-owned resources. Refresh may reconcile
+an object already deleted in GCP. Apply only the new inspected plan; never replay
+the stale original plan, remove unverified state entries or broaden cleanup.
+Existing scoped teardown approval covers this convergence; stop on authentication,
+ownership or scope uncertainty and keep all evidence.

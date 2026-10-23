@@ -349,6 +349,9 @@ After the 60-minute budget, preserve evidence and perform at most ten minutes of
 2. Match the owned VM NICs to the node on `/config/namespaces/system/securemesh_site_v2s/<owned-site>`. Check `spec.gcp.not_managed.node_list`: `ens4` uses `site_local_network` with `is_primary=true`, and `ens5` uses `site_local_inside_network` with `is_primary=false`. Do not infer SLI from an empty `sli_address` display field.
 3. Run a **post-registration** `terraform plan -input=false -detailed-exitcode`. Exit 0 is no drift; 1 is error; 2 is drift. Do not apply drift blindly.
 
+Read NIC roles under each `interface_list[].network_option`, not at the interface's top level. The name, device, MAC and
+`is_primary` fields sit alongside that choice; verify the owned VM mapping without inventing a reported IP field.
+
 Record Regional Edge identities and `connected_re` separately, validating response shape. `ONLINE` alone does not establish RE connectivity. Report each met/unmet gate with timestamps and immutable provider/image identities.
 
 ## 8. Review recovery before mutating
@@ -370,3 +373,8 @@ Use validated exact-object absence responses or validated lists without the exac
 body or empty unchecked output is not cleanup evidence. Bound XC deletion checks and retain failed cleanup evidence. Do
 not delete by broad prefixes or remove unrelated resources. Cleanup remains incomplete until the owned GCP resources and
 XC site are independently absent.
+If transport fails while polling deletion, preserve the failure and re-read the exact resource and operation. The
+deletion may already have succeeded. Create and inspect a new saved destroy plan for only remaining state-owned
+resources; refresh can reconcile an object already absent. Apply that new plan under the existing scoped teardown
+approval. Do not replay the stale plan, remove unverified state entries or broaden cleanup. Authentication, ownership
+or scope uncertainty still pauses dependent work.
