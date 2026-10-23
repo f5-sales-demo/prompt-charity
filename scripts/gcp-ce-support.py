@@ -353,6 +353,10 @@ def iam_preflight(
                 "observed_at": stamp,
             }
         )
+        if gate == "deployment_permissions" and "licence probe" in reason:
+            gates[-1]["next_action"] = (
+                "review a scoped image/licence probe; do not infer an IAM grant"
+            )
     return {"schema_version": 1, "selection": dict(selection), "gates": gates}
 
 
@@ -486,6 +490,13 @@ def wait_iam_propagation(
             gate["status"] == "PASS" for gate in result["gates"]
         ):
             return {"status": "PASS", "observations": observations}
+        if (
+            wall_time() < deadline
+            and all(result["gates"][i]["status"] == "PASS" for i in (0, 1, 3, 4))
+            and result["gates"][2]["status"] == "UNKNOWN"
+            and "licence probe" in result["gates"][2]["reason"]
+        ):
+            return {"status": "REVIEW_REQUIRED", "observations": observations}
         sleep(max(0, min(started + 30, deadline) - wall_time()))
     return {
         "status": "PAUSED",
@@ -693,15 +704,39 @@ class GcpIamObserver:
                     "UNKNOWN",
                     "project permissions verified; resolve exact external CE image and test image-use permission",
                 )
-            return self.permissions(
-                "https://compute.googleapis.com/compute/v1/projects/f5-7626-networks-public/global/images/"
-                + self.image_name,
-                ["compute.images.useReadOnly"],
-                "effective",
-            )
+            return self.image_gate()
         if gate == "apis_quota_project":
             return self.api_gate()
         return self.auth_gate()
+
+    def image_gate(self) -> tuple[str, str]:
+        """Keep readable external-image permission discrepancies unresolved."""
+        resource = (
+            "https://compute.googleapis.com/compute/v1/projects/"
+            "f5-7626-networks-public/global/images/" + self.image_name
+        )
+        result = self.permissions(resource, ["compute.images.useReadOnly"], "effective")
+        if result[0] != "BLOCKED":
+            return result
+        status, body = self.request(resource, self.effective_token())
+        try:
+            payload = json.loads(body)
+            readable = (
+                status == HTTPStatus.OK
+                and isinstance(payload, dict)
+                and payload.get("name") == self.image_name
+                and isinstance(payload.get("id"), str)
+                and payload["id"].isdigit()
+                and payload.get("status") == "READY"
+            )
+        except (ValueError, TypeError):
+            readable = False
+        if readable:
+            return (
+                "UNKNOWN",
+                "external image metadata verified but image-use permission test empty; review a separately approved licence probe before VM deployment; no IAM grant inferred",
+            )
+        return result
 
     def api_gate(self) -> tuple[str, str]:
         """Verify API enabled states and explicit quota-project permission."""

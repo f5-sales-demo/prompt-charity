@@ -301,6 +301,32 @@ class IamTests(unittest.TestCase):
         self.assertNotIn("roles/owner", json.dumps(request).lower())
         self.assertIn("custom roles", request["instruction"])
 
+    def test_readable_external_image_empty_permission_test_needs_approved_probe(self):
+        image = "f5xc-ce-crt-synthetic-byol"
+        self.responses[image + "/testIamPermissions"] = (200, b"{}")
+        self.responses["/images/" + image] = (
+            200,
+            json.dumps({"name": image, "id": "123", "status": "READY"}).encode(),
+        )
+        result = self.preflight()
+        self.assertEqual(result["gates"][2]["status"], "UNKNOWN")
+        self.assertIn("licence probe", result["gates"][2]["reason"])
+        self.assertIsNone(support.iam_team_request(result)["required_role"])
+        self.assertFalse(any("disks" in url for url, _, _ in self.requests))
+        resumed = support.wait_iam_propagation(
+            self.preflight, True, 600, wall_time=lambda: self.clock[0]
+        )
+        self.assertEqual(resumed["status"], "REVIEW_REQUIRED")
+        self.assertEqual(len(resumed["observations"]), 1)
+
+    def test_external_image_read_cannot_pass_missing_use_permission(self):
+        image = "f5xc-ce-crt-synthetic-byol"
+        self.responses[image + "/testIamPermissions"] = (200, b"{}")
+        for response in ((200, b"[]"), (200, b'{"name":"wrong"}'), (403, b"{}")):
+            with self.subTest(response=response):
+                self.responses["/images/" + image] = response
+                self.assertEqual(self.preflight()["gates"][2]["status"], "BLOCKED")
+
     def test_unavailable_policy_and_conditions_do_not_infer_token_creator(self):
         for response in (
             (403, b'{"policy":"unreadable"}'),

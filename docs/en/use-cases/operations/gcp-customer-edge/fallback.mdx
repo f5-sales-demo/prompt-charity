@@ -78,12 +78,33 @@ Exit 0 means all IAM/authentication gates passed; exit 2 means prerequisites rem
 check the selected image, regional capacity, CIDRs and XC/private-provider access before deployment. Explicit key sources
 that this helper cannot independently verify remain unknown and require equivalent native credential-aware checks.
 
+A shared/public image can be readable while its image-use permission test returns an empty result. Keep this
+discrepancy `UNKNOWN`; metadata access proves reading, not image use. When the caller, impersonation, deployment-project
+permissions, APIs and CLI/ADC checks pass, include a scoped image/licence probe in the reviewed implementation plan.
+Successful creation from the exact pinned image as the selected identity proves that capability; independently verify
+probe deletion before proceeding. Never create a probe during planning or invent an IAM grant for the image publisher.
+The helper's propagation protocol returns `REVIEW_REQUIRED` for this remaining image uncertainty, preserving all gates
+without restarting IAM polling or authorizing deployment.
+
+Unavailable organization/folder policy inspection remains `UNKNOWN`; it does not establish a deny or require broad
+organization permissions. For new VPCs, include a phased approved plan: inspect and apply a saved plan for only the two
+networks and two subnets, check effective firewalls on those exact owned networks, then inspect and apply a saved plan
+for the remaining eleven resources. The combined scope stays fifteen resources. Stop on an incompatible inherited
+rule. Do not bypass policies or use an unreviewed target/recomputed plan.
+
 After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
 hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
 receipts and propagation deadline. Never save credential values or full policies. The helper provides
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
 invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
+
+Use the full exact canonical prompt hash from its file/attachment or an independently supplied hash. An excerpt hash
+cannot identify the prompt. Record missing provenance as unknown until resolved. Verify the actual terminal shell and
+complete multiline output before long commands; prefer an already installed Bash 5+ over macOS Bash 3.2 when native
+terminal input is corrupted. Keep terminal repairs task-local and preserve credentials, installations and deadlines.
+Include both `cloud-platform` and `userinfo.email` scopes in short-lived impersonation requests so token-info can
+independently verify the service-account identity without revealing the token.
 
 Inspect existing credentials during read-only planning. Login, ADC-file creation and local authentication changes
 require explicit setup approval, followed by discovery as the selected identity and review of the deployment plan.
