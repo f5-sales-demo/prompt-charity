@@ -554,6 +554,7 @@ class GcpIamObserver:
             with urllib.request.urlopen(request, timeout=25) as response:  # noqa: S310 - internal fixed HTTPS API URLs
                 return response.status, response.read()
         except urllib.error.HTTPError as error:
+            error.close()
             return error.code, b""  # Never return arbitrary server credential echoes.
         except (OSError, urllib.error.URLError):
             return None, b""
