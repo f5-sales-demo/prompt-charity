@@ -39,7 +39,7 @@ Compare images by name and creation time in `f5-7626-networks-public`; pin the s
 
 Keep XC credentials in an inherited environment or a private credential file outside the Terraform directory. Verify access with a validated read-only API response. Report credential presence only; never expand the value into a presence message.
 
-Present a scoped plan including exact provider version/asset/checksum, image, project/zone, names, CIDRs, cost, optional SSH and cleanup. **Require explicit plan approval before installation, file creation, the licence probe or deployment.** All following steps belong to that approved implementation.
+Present a scoped plan including exact provider version/asset/checksum, image, project/zone, names, CIDRs, cost, optional SSH and cleanup. **Require explicit plan approval before installation, file creation, the licence probe or deployment.** During planning, use read-only list/get/describe/help operations. Never run a mutating command to test syntax, assume a dry-run flag, or background and cancel a creation command. Licence acceptance remains unverified until the approved probe. All following steps belong to that approved implementation.
 
 ## 2. Resolve and install the exact provider
 

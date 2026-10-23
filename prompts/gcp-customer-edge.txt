@@ -37,6 +37,11 @@ Report only presence, identity where needed, status and redacted evidence.
 
 Verify the active GCP identity and project, API access, and Terraform Application
 Default Credentials independently of CLI login. Do not print access tokens.
+During planning, use only list/get/describe/help operations. Never execute create,
+update, delete, reset or install commands to test syntax or permissions. Never
+assume a dry-run flag, background a mutation and kill it, or treat cancellation
+as proof that no resource was created. Licence acceptance can only be proved by
+a probe after plan approval; report it as unverified during planning.
 Inventory all project subnets including secondary ranges; check proposed SLO/SLI
 ranges against them and each other. Confirm n2-standard-8 availability in the
 chosen zone and at least eight free regional N2 vCPUs plus disk/network quotas.
