@@ -131,6 +131,15 @@ implicitly exclude prereleases. Fail discovery clearly if the native platform
 asset or an exact checksum is absent. Current baseline checked on 2026-10-22 is
 v0.9.7; re-resolve at execution time. Unsupported assets are a prerequisite failure.
 
+Disclose the node-local service policy DURING PLANNING. In provider 0.9.7,
+blocked_services_choice.block_all_services=true is documented as "Enable all
+Node Local Services" (WebUI, SSH and DNS), despite its negative field name.
+This recipe retains that documented default; GCP SSH access still defaults to
+none. Read the selected release's documentation and confirm its schema before
+deployment. Report any unresolved semantics before deployment approval, not
+after creation. Do not silently invert the choice or equate GCP SSH reachability
+with the XC node-local service policy; a different policy needs a reviewed plan.
+
 List f5xc-ce-crt-* images from f5-7626-networks-public, compare newest by name
 with newest by creation time, explain disagreements, and pin an approved full
 image name and immutable identity. There is no CE image family. Inspect its
@@ -496,6 +505,13 @@ ERROR_IN_ORCHESTRATION is a failure. Bound transient retries within the original
 and never return success on timeout. Preserve raw evidence privately and report
 which completion gates remain unmet.
 
+An initial ONLINE response can briefly regress to PROVISIONING during registration.
+Require two consecutive valid ONLINE observations at least 30 seconds apart before
+passing registration. A pending state or response failure clears this stability
+window; continue read-only polling within the ORIGINAL VM-creation deadline.
+Check that deadline before requests and before accepting a response. Never reset
+the budget, redeploy or declare completion from the first ONLINE sample alone.
+
 After 60 minutes stop polling and perform at most 10 minutes of read-only diagnostics:
 owned VM status and serial logs, NAT mappings, effective firewall rules, site/node
 responses and JWT age/validity without exposing its value. Do not retry indefinitely.
@@ -506,7 +522,7 @@ can reuse stale data. Explain exact replacement/metadata effects and require
 approval of recovery changes before executing them. Keep the failed attempt.
 
 Completion requires evidence for ALL three gates:
-1. Validated site_state=ONLINE.
+1. Two consecutive validated site_state=ONLINE observations at least 30 seconds apart.
 2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
    node's ens4=site_local_network (SLO, primary=true) and
    ens5=site_local_inside_network (SLI, primary=false), matched to the owned VM NICs.
@@ -516,6 +532,9 @@ Completion requires evidence for ALL three gates:
    look for the role at the interface's top level or assume a reported IP field.
 3. A POST-registration terraform plan -detailed-exitcode returns 0. Exit 1 is error;
    exit 2 is drift. Never apply that drift blindly or call an earlier clean plan success.
+   Recheck ONLINE after this plan before declaring completion. A regression resumes
+   the original bounded polling and requires fresh NIC and post-registration plan
+   evidence after stability returns; an expired budget pauses for bounded diagnostics.
 
 Record connected_re separately from registration; validate its response shape and
 report observed RE identities/count without equating ONLINE with connectivity.

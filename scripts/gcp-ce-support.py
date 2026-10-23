@@ -1,6 +1,5 @@
 """Fallback helpers: exact checksums and bounded, fail-closed XC polling."""
 
-# Native CLI filename convention.
 # pylint: disable=invalid-name
 
 import argparse
@@ -22,6 +21,7 @@ from pathlib import Path
 CHECKSUM_COLUMNS = 2
 MAX_FAILURES = 3
 MAX_TIMEOUT = 3600
+ONLINE_STABILITY_SECONDS = 30
 IMPERSONATION_SCOPES = [
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
@@ -139,9 +139,10 @@ def poll(
     sleep: Callable[[float], None] = time.sleep,
     emit: Callable[[str], None] = print,
 ) -> int:
-    """0 ONLINE, 2 timeout, 1 terminal/auth/repeated response failure."""
+    """0 stable ONLINE, 2 timeout, 1 terminal/auth/repeated response failure."""
     start = monotonic()
     failures = 0
+    online_since: float | None = None
     while monotonic() - start < timeout:
         poll_started = monotonic()
         status, body = fetch()
@@ -151,7 +152,12 @@ def poll(
         if elapsed >= timeout:
             break
         if kind == "ONLINE":
-            return 0
+            online_since = elapsed if online_since is None else online_since
+            if elapsed - online_since >= ONLINE_STABILITY_SECONDS:
+                return 0
+            emit("WAIT ONLINE stability; require a fresh read at least 30s later")
+        else:
+            online_since = None
         if kind in {"FAILED", "AUTH_ERROR"}:
             return 1
         failures = (
@@ -940,9 +946,8 @@ def main() -> None:
     if args.command == "iam-preflight":
         raise SystemExit(run_iam_command(args))
     if args.command == "release":
-        manifest = release_manifest(
-            json.loads(args.pages.read_text(encoding="utf-8")), args.platform
-        )
+        pages = json.loads(args.pages.read_text(encoding="utf-8"))
+        manifest = release_manifest(pages, args.platform)
         print(json.dumps(manifest, sort_keys=True))
         return
     if args.command == "checksum":
@@ -979,16 +984,12 @@ def main() -> None:
             status, body = None, b""
         stamp = time.time_ns()
         target = args.evidence_dir / f"poll-{stamp}-{sequence}.json"
-        target.write_text(
-            json.dumps(
-                {
-                    "time_ns": stamp,
-                    "status": status,
-                    "body": body.decode("utf-8", errors="replace"),
-                }
-            ),
-            encoding="utf-8",
-        )
+        receipt = {
+            "time_ns": stamp,
+            "status": status,
+            "body": body.decode("utf-8", errors="replace"),
+        }
+        target.write_text(json.dumps(receipt), encoding="utf-8")
         return status, body
 
     raise SystemExit(poll(fetch, timeout=args.timeout_seconds))

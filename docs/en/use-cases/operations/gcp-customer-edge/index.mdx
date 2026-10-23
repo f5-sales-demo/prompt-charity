@@ -51,7 +51,10 @@ Enable native planning mode in your chosen agent, then copy this entire block. R
 
 Allow roughly 30-50 minutes, usually 20-45 minutes for registration and upgrades. Cold downloads may take longer. The agent polls every 30 seconds with visible elapsed time and keeps the session active. After 60 minutes it preserves evidence and performs bounded diagnostics; a timeout or invalid response cannot pass.
 
-Completion requires `ONLINE`, verified `ens4 → SLO` and `ens5 → SLI` roles, and a post-registration `terraform plan -detailed-exitcode` returning zero. Regional Edge connectivity is recorded separately. Do not accept a pending status or an earlier clean plan as completion.
+Completion requires consecutive validated `ONLINE` observations at least 30 seconds apart, verified `ens4 → SLO`
+and `ens5 → SLI` roles, and a post-registration `terraform plan -detailed-exitcode` returning zero. Recheck `ONLINE`
+after that plan; a regression resumes the original bounded polling. Regional Edge connectivity is recorded separately.
+Do not accept a pending status or an earlier clean plan as completion.
 
 ## Teardown and fallback
 
@@ -71,7 +74,7 @@ The earlier prompt completed three sequential fresh deployments on 2026-10-23. E
 received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
 before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
 
-Current canonical SHA256: `7e4d5ac4086fed6a77e9255ff42327f8b830032ebc37a431f7cca5174d679fb7`.
+Current canonical SHA256: `9243d7895a2e2dd40d867d5468d941b3d55bf15c8d4a918c3a284dec63bc4a6d`.
 
 Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
 

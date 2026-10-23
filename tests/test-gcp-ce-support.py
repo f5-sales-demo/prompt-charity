@@ -91,7 +91,7 @@ class SupportTests(unittest.TestCase):
         ]:
             self.assertEqual(support.classify(status, body)[0], result)
 
-    def poll(self, responses):
+    def poll(self, responses, timeout=60):
         clock = [0.0]
         output: list[str] = []
 
@@ -103,7 +103,7 @@ class SupportTests(unittest.TestCase):
 
         result = support.poll(
             fetch,
-            timeout=60,
+            timeout=timeout,
             monotonic=lambda: clock[0],
             sleep=sleep,
             emit=output.append,
@@ -132,10 +132,71 @@ class SupportTests(unittest.TestCase):
                 [
                     (200, b'{"spec":{"site_state":"UPGRADING"}}'),
                     (200, b'{"spec":{"site_state":"ONLINE"}}'),
-                ]
+                ],
+                timeout=90,
             )[0],
             0,
         )
+
+    def test_transient_online_regression_restarts_stability(self):
+        result, output = self.poll(
+            [
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+                (200, b'{"spec":{"site_state":"PROVISIONING"}}'),
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+            ],
+            timeout=120,
+        )
+        self.assertEqual(result, 0)
+        self.assertTrue(any("elapsed=90s ONLINE" in line for line in output))
+        self.assertEqual(sum(line.startswith("WAIT ONLINE") for line in output), 2)
+
+    def test_response_failure_interrupts_online_stability(self):
+        result, output = self.poll(
+            [
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+                (None, b""),
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+            ],
+            timeout=120,
+        )
+        self.assertEqual(result, 0)
+        self.assertTrue(any("elapsed=90s ONLINE" in line for line in output))
+
+    def test_online_stability_does_not_extend_original_deadline(self):
+        result, output = self.poll(
+            [
+                (200, b'{"spec":{"site_state":"PROVISIONING"}}'),
+                (200, b'{"spec":{"site_state":"ONLINE"}}'),
+            ]
+        )
+        self.assertEqual(result, 2)
+        self.assertIn("TIMEOUT", output[-1])
+
+    def test_online_observations_must_be_at_least_thirty_seconds_apart(self):
+        clock = [0.0]
+        observations: list[float] = []
+
+        def fetch():
+            if not observations:
+                clock[0] += 20
+            observations.append(clock[0])
+            return 200, b'{"spec":{"site_state":"ONLINE"}}'
+
+        def sleep(seconds):
+            clock[0] += seconds
+
+        result = support.poll(
+            fetch,
+            timeout=120,
+            monotonic=lambda: clock[0],
+            sleep=sleep,
+            emit=lambda _: None,
+        )
+        self.assertEqual(result, 0)
+        self.assertEqual(observations, [20, 30, 60])
 
     def test_redaction(self):
         raw = "Authorization: APIToken secret-value eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ4In0.signature F5XCProvider_API_TOKEN=other-secret"

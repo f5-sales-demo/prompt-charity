@@ -278,6 +278,10 @@ filtering still need discovery.
 
 ### site.tf
 
+Provider 0.9.7 documents `block_all_services=true` as **Enable all Node Local Services** (WebUI, SSH and DNS),
+despite its negative field name. Disclose this default during planning and confirm it against the selected release.
+GCP SSH reachability is a separate approval; do not silently invert the XC service choice.
+
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(site, 'utf8').toString('base64')}`} download="site.tf">Download site.tf</a>
 
 <Code code={site} lang="hcl" title="site.tf" />
@@ -328,7 +332,8 @@ Apply only that inspected plan with `terraform apply -input=false tfplan`. If it
 Allow roughly 30-50 minutes overall, normally 20-45 minutes for registration/upgrades. Cold provider downloads and init
 can take longer; teardown often takes several minutes. Announce each wait. Keep the session active and collect output
 through bounded tool waits. The poller prints every attempt at 30-second intervals and saves responses to a private
-directory. Only `ONLINE` returns success; timeout returns 2 and failures return 1.
+directory. Success requires consecutive valid `ONLINE` observations at least 30 seconds apart; timeout returns 2
+and failures return 1. An initial `ONLINE` response can briefly return to `PROVISIONING`.
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(support, 'utf8').toString('base64')}`} download="gcp-ce-support.py">Download IAM, checksum and polling helper (Python 3.11+)</a>
 
@@ -344,7 +349,8 @@ python3 gcp-ce-support.py poll "$SITE" --evidence-dir /path/to/private/poll-evid
 ```
 
 Pass only the remaining original budget if polling starts after VM creation or a command restarts. Do not restart the
-60-minute deadline. A state can oscillate between provisioning and upgrading; that is pending. Transport/HTTP errors,
+60-minute deadline. A pending state or response failure clears the ONLINE stability window. A state can oscillate
+between provisioning and upgrading; that is pending. Transport/HTTP errors,
 invalid JSON and unknown states are distinct failures. Authentication errors stop immediately; three repeated
 invalid/transport/HTTP responses stop for diagnostics. No timeout is success.
 
@@ -352,9 +358,13 @@ After the 60-minute budget, preserve evidence and perform at most ten minutes of
 
 ## 7. Verify all completion gates
 
-1. Validate `spec.site_state=ONLINE` on `/config/namespaces/system/sites/<owned-site>`.
+1. Validate two consecutive `spec.site_state=ONLINE` responses at least 30 seconds apart on `/config/namespaces/system/sites/<owned-site>`.
 2. Match the owned VM NICs to the node on `/config/namespaces/system/securemesh_site_v2s/<owned-site>`. Check `spec.gcp.not_managed.node_list`: `ens4` uses `site_local_network` with `is_primary=true`, and `ens5` uses `site_local_inside_network` with `is_primary=false`. Do not infer SLI from an empty `sli_address` display field.
 3. Run a **post-registration** `terraform plan -input=false -detailed-exitcode`. Exit 0 is no drift; 1 is error; 2 is drift. Do not apply drift blindly.
+
+Recheck `ONLINE` after the plan before declaring completion. A regression resumes polling within the original
+VM-creation deadline and requires fresh NIC and post-registration plan evidence after stability returns. An expired
+budget pauses for bounded diagnostics; it never authorizes redeployment or a new deadline.
 
 Read NIC roles under each `interface_list[].network_option`, not at the interface's top level. The name, device, MAC and
 `is_primary` fields sit alongside that choice; verify the owned VM mapping without inventing a reported IP field.
