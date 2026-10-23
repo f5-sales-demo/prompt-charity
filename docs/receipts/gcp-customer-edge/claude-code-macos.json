@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "prompt_sha256": "d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3",
+  "harness": {
+    "name": "Claude Code",
+    "version": "2.1.308",
+    "os": "macOS",
+    "platform": "darwin_arm64",
+    "native_planning_mode": true,
+    "same_session_implementation": true
+  },
+  "location": {
+    "region": "us-east4",
+    "zone": "us-east4-a"
+  },
+  "planning": {
+    "empty_start_directory": true,
+    "independent_no_deployment_changes": true,
+    "scoped_plan_reviewed_and_approved": true
+  },
+  "provider": {
+    "version": "0.9.7",
+    "release_tag": "v0.9.7",
+    "prerelease": true,
+    "release_id": 412359117,
+    "asset_id": 639311100,
+    "asset": "terraform-provider-f5xc_0.9.7_darwin_arm64.zip",
+    "sha256": "010b7d729df3afff42dcf7448253af3b297967c63df0249b4fdc08f7cdc1e679",
+    "verified_before_extraction": true
+  },
+  "image": {
+    "name": "f5xc-ce-crt-20260801-0205-byol",
+    "immutable_id": "1689146860273445475"
+  },
+  "deployment": {
+    "resource_count": 15,
+    "saved_plan_inspected_and_applied": true,
+    "no_public_ip": true,
+    "project_ssh_keys_blocked": true,
+    "vm_created_at": "2026-10-22T23:34:05.231-07:00"
+  },
+  "gates": {
+    "online": true,
+    "online_observed_at": "2026-10-23T06:55:14.742570+00:00",
+    "ens4": "SLO primary",
+    "ens5": "SLI non-primary",
+    "hostname_and_nic_ips_matched_owned_vm": true,
+    "post_registration_detailed_exitcode": 0
+  },
+  "regional_edges": {
+    "recorded_separately": true,
+    "count": 2,
+    "names": ["dc12-ash", "ny8-nyc"]
+  },
+  "recovery_notes": [
+    "Transient transport errors preserved; bounded retry of post-registration plan changed exit 1 to exit 0. No drift applied.",
+    "Wrong-endpoint token 404 rejected; correct register endpoint independently verified."
+  ],
+  "cleanup": {
+    "saved_destroy_plan_inspected_and_applied": true,
+    "state_empty": true,
+    "exact_gcp_absence_checks": 13,
+    "nat_absent_with_owned_router": true,
+    "xc_site_absent": true,
+    "securemesh_v2_absent": true,
+    "token_absent": true,
+    "independently_verified_at": "2026-10-23T07:01:47.763352+00:00"
+  }
+}

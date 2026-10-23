@@ -1,0 +1,244 @@
+# Deploy a Customer Edge in GCP
+
+Work in native planning mode first. Use only authorized read-only investigation.
+Do not edit files, install tools, create licence probes, initialize Terraform,
+deploy, or change external state until I explicitly approve your scoped plan.
+Stop after the plan and wait for approval. Once approved, implement and verify
+that plan continuously, keeping the session active through registration.
+
+## Objective and inputs
+
+Deploy one Secure Mesh Site v2 Customer Edge in an existing authorized test GCP
+project, using Terraform and two network interfaces. This is a greenfield PoC.
+
+GCP project: [Existing project ID]
+Region and zone: [Region and zone, or request an evidence-based recommendation]
+Name prefix: [Unique DNS-safe short prefix]
+SLO subnet: [Non-overlapping private /26 CIDR, or request a checked proposal]
+SLI subnet: [Different non-overlapping private /26 CIDR, or request a checked proposal]
+F5 Distributed Cloud tenant: [Authorized tenant API URL ending in /api]
+Credential source: [Private credential file or inherited environment; never paste secrets]
+SSH: [None by default; optional public key and narrowly scoped source CIDRs]
+
+Exclude HA, workload VMs, load balancers, origin pools, Windows VM provisioning,
+and changes to unrelated infrastructure. Do not copy reference Terraform or
+configuration from elsewhere on disk. Generate this deployment from this prompt
+and your own environment discovery. Existing owned state may be inspected to
+identify a resume, but never adopt or remove unowned resources.
+
+## Read-only discovery
+
+Discover the operating system, architecture, shell, available native commands,
+Terraform version (at least 1.5), JSON/HTTP/archive/SHA256 tooling, and credential
+mechanisms. Select commands appropriate to the discovered environment rather
+than assuming a shell, operating system, harness, plugin or tool name. Never
+print credential values, even while checking whether a variable is present.
+Report only presence, identity where needed, status and redacted evidence.
+Load credential sources only for named-variable presence checks and authenticated
+requests. Never display, byte-dump, trace or log a credential source, even through
+a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
+to diagnose credentials or shell behavior. Diagnose shell/path issues without
+reading secret bytes; use task-specific variable names that cannot alter PATH.
+
+Verify the active GCP identity and project, API access, and Terraform Application
+Default Credentials independently of CLI login. Do not print access tokens.
+During planning, use only list/get/describe/help operations. Never execute create,
+update, delete, reset or install commands to test syntax or permissions. Never
+assume a dry-run flag, background a mutation and kill it, or treat cancellation
+as proof that no resource was created. Licence acceptance can only be proved by
+a probe after plan approval; report it as unverified during planning.
+Inventory all project subnets including secondary ranges; check proposed SLO/SLI
+ranges against them and each other. Confirm n2-standard-8 availability in the
+chosen zone and at least eight free regional N2 vCPUs plus disk/network quotas.
+Check effective firewall policies: these VPC rules cannot override higher-level
+deny policies. Inspect existing state and exact-prefix GCP/XC resources to detect
+fresh, healthy-existing, interrupted, or orphaned runs. Keep existing ownership
+and names on resume. Flag missing access or ambiguous ownership before planning.
+
+Private provider access is a prerequisite: the customer must be invited to
+F5Networks/terraform-provider-f5xc-preview and authenticate release access.
+An inaccessible private repository may return a misleading 404. The repository
+provides prebuilt releases; do not assume it is on the public Terraform registry
+or attempt to compile it. Environment tokens can shadow stored GitHub credentials;
+check presence without exposing values and select a verified authenticated identity.
+
+Enumerate all release pages. Select the newest non-draft release by publication
+time, INCLUDING prereleases. Resolve its exact version, platform zip filename,
+release asset identity, and published SHA256; do not use a loose constraint or
+implicitly exclude prereleases. Fail discovery clearly if the native platform
+asset or an exact checksum is absent. Current baseline checked on 2026-10-22 is
+v0.9.7; re-resolve at execution time. Unsupported assets are a prerequisite failure.
+
+List f5xc-ce-crt-* images from f5-7626-networks-public, compare newest by name
+with newest by creation time, explain disagreements, and pin an approved full
+image name and immutable identity. There is no CE image family. Inspect its
+licences read-only. A disk licence probe creates a resource and belongs only in
+the approved implementation plan. Check XC access with validated read-only
+responses; HTTP 200 alone does not establish a valid site or coverage.
+
+Ask only for missing inputs or material unresolved decisions. Give checked
+recommendations; do not ask again for values already supplied. Never request
+that secrets be put in chat. A credential file must be private, outside the
+Terraform directory, and loaded into every command that needs it without logging.
+
+## Plan and approval boundary
+
+Present the discovered identities, prerequisites, selected exact provider asset
+and checksum, pinned image, zone, CIDRs, SSH choice, resource ownership, proposed
+cost and teardown. Give objective acceptance criteria and ordered implementation,
+verification and recovery steps. List proposed installations, file creation,
+licence probe, and deployment explicitly. Planning must make no deployment changes.
+Stop after the plan. Require explicit approval before any of those mutations.
+
+## Approved implementation
+
+After approval, announce each phase and expected wait, then execute the scoped
+plan without asking for routine reconfirmation. Preserve failures and private raw
+evidence. Download the selected release asset and checksums into a private task
+scratch directory. Match exactly one checksum entry for the exact zip filename,
+verify SHA256 before extraction or installation, and reject missing, duplicated,
+malformed or mismatched checksums. Install into Terraform's native local plugin
+mirror for the resolved version and platform. Pin required_providers f5xc to that
+EXACT version. Record other resolved provider versions in the lockfile.
+
+Create a uniquely named temporary disk from the pinned image in the selected
+project/zone to verify marketplace licence acceptance. Record its ownership and
+prove deletion even after a failed probe. Never delete an unrelated probe disk.
+A failed marketplace acceptance prerequisite requires the customer's acceptance
+of the terms before continuing.
+
+Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
+network.tf, firewall.tf, site.tf, token.tf, instance.tf and outputs.tf, plus private
+input values and an active-session registration poller. Keep configuration,
+state, saved plans, provider schemas, VM metadata and raw responses private.
+
+Use random_id with byte_length=3 and local.name="${var.name_prefix}-${random_id.suffix.hex}".
+Derive every owned name and a task-specific CE tag from local.name. Scope every
+firewall rule to that matching VM tag. Create two custom-mode VPCs, two regional
+subnets, an SLO Cloud Router and Cloud NAT covering the SLO subnet's primary range.
+No public IP on the VM. No existing networks are modified.
+
+Create five default egress firewall resources: registration TCP 443 to
+159.60.141.140/32; separate worldwide RE TCP 80/443 and UDP 4500/123 rules;
+HTTPS TCP 443 to 0.0.0.0/0 for CDN-backed software domains; and DNS/NTP UDP 53/123
+plus TCP 53 to 8.8.8.8/32, 8.8.4.4/32, 216.239.35.0/32, 216.239.35.4/32,
+216.239.35.8/32 and 216.239.35.12/32. Broad HTTPS does not bypass organizational
+policies or domain filters. Use F5's Secure Mesh v2 CE reference, not legacy ranges:
+https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-ip-dom-ref
+
+Worldwide RE TCP destinations checked on 2026-10-22:
+5.182.215.0/25, 84.54.61.0/25, 23.158.32.0/25, 84.54.62.0/25, 185.94.143.0/25, 185.94.142.0/24, 159.60.190.0/24, 159.60.168.0/24, 159.60.180.0/24, 159.60.174.0/24, 159.60.175.0/24, 159.60.176.0/24, 159.60.177.0/24, 159.60.179.0/24, 159.60.181.0/24, 159.60.183.0/24, 5.182.213.0/24, 5.182.212.0/25, 5.182.214.0/25, 84.54.60.0/25, 185.56.154.0/25, 159.60.160.0/24, 159.60.161.0/24, 159.60.162.0/24, 159.60.163.0/24, 159.60.188.0/24, 159.60.182.0/24, 159.60.178.0/24, 103.135.56.0/24, 103.135.57.0/25, 103.135.59.0/25, 103.135.58.0/24, 159.60.189.0/24, 159.60.166.0/24, 159.60.164.0/24, 159.60.170.0/24, 159.60.172.0/24, 159.60.191.0/24, 159.60.184.0/24, 159.60.185.0/24, 159.60.186.0/24
+
+Worldwide RE UDP destinations checked on 2026-10-22:
+5.182.215.0/25, 84.54.61.0/25, 23.158.32.0/25, 84.54.62.0/25, 185.94.143.0/25, 185.94.142.0/24, 159.60.190.0/24, 159.60.168.0/24, 159.60.180.0/24, 159.60.174.0/24, 159.60.175.0/24, 159.60.176.0/24, 159.60.177.0/24, 159.60.179.0/24, 159.60.181.0/24, 159.60.183.0/24, 5.182.213.0/24, 5.182.212.0/25, 5.182.214.0/25, 84.54.60.0/25, 185.56.154.0/25, 159.60.160.0/24, 159.60.161.0/24, 159.60.162.0/24, 159.60.163.0/24, 159.60.188.0/24, 159.60.182.0/24, 159.60.178.0/24, 103.135.56.0/24, 103.135.57.0/25, 103.135.59.0/25, 103.135.58.0/24, 159.60.189.0/24, 159.60.166.0/24, 159.60.164.0/24, 159.60.170.0/24, 159.60.172.0/24, 159.60.184.0/24, 159.60.185.0/24, 159.60.186.0/24
+
+Preserve the protocol difference (159.60.191.0/24 is TCP only); never union the
+sets or replace them with an unrestricted tunnel rule. If the current official
+reference changes, report the difference for review before implementing it.
+Do not open UDP 500 or ESP; CE-to-CE mesh is excluded. Ingress is optional SSH
+TCP 22 only when requested, with approved narrow source ranges and an actual
+private connectivity path. No default inbound access is required.
+
+There are 15 Terraform resources by default: random_id, two networks, two subnets,
+router, NAT, five firewall rules, site, JWT token and instance. Optional SSH adds
+one firewall resource (16). This count includes Terraform and XC objects.
+
+Configure f5xc from F5XCProvider_URL and F5XCProvider_API_TOKEN inherited privately;
+use timeout and throttling={}, without required credential variables that cause
+interactive prompts. This does not guarantee secrets stay out of state. The JWT
+and cloud-init metadata are sensitive, and provider versions may persist other
+credentials. Treat all state, plans, metadata and logs as secret-bearing. Wrap JWT
+interpolation with sensitive(); do not output it. Use restrictive local permissions
+or an encrypted access-controlled backend. Publish sanitized receipts only.
+
+Use f5xc_securemesh_site_v2 in namespace system with attribute object syntax:
+provider_choice={gcp={orchestration_choice={not_managed={}}}}.
+Set exactly one member in each required one-of choice:
+blocked_services_choice={block_all_services=true},
+logs_receiver_choice={logs_streaming_disabled=true},
+node_ha_choice={disable_ha=true},
+dns_ntp_config={dns_server_choice={f5_dns_default=true},ntp_server_choice={f5_ntp_default=true}},
+re_select={re_selection_choice={geo_proximity=true}}.
+Verify service-choice semantics against the selected schema/API; do not infer
+behavior from a negative field name. No managed GCP orchestration or service-account
+key is sent to XC. Do not declare node_list: registration reports interfaces.
+
+Site lifecycle must ignore_changes=[provider_choice,labels,operating_system_version,
+volterra_software_version], because registration populates those fields; removing
+them can strip the discovered NIC configuration. These exclusions also hide drift,
+so verify those fields independently using the API after registration.
+
+Use f5xc_token with type=["JWT"], site_name bound to the site, and pass its .content
+string to the node, never .id or .content[0]. Do not assume a fixed JWT lifetime.
+Inspect the issued token's iat/exp timestamps privately and use its actual expiration
+for validity, resume and recovery decisions; lifetime can vary with server policy.
+Cloud-init writes only token: <JWT> in /etc/vpm/user_data, owned by root with 0600
+permissions. Do not use SMSv1 /etc/vpm/config.yaml, Vpm/Kubernetes nesting,
+certified_hardware or a registration_approval resource.
+
+Create one n2-standard-8 VM, can_ip_forward=true, 80 GB pd-balanced boot disk,
+pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
+has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
+so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
+Shielded VM features. VM lifecycle ignores metadata["user-data"] so rotating a
+JWT does not implicitly replace a healthy VM. Explicit depends_on must include
+the site, token and SLO NAT so the VM boots with working egress.
+
+Run init non-interactively, fmt then fmt -check, validate, inspect the selected
+provider schema, and create a saved plan. Inspect the saved plan for the approved
+15/16 resources, exact project/zone/image, CIDRs, NIC order, firewall rules, lifecycle
+and absence of unrelated changes. Apply only that inspected saved plan; do not
+apply a recomputed plan. Stop and revise the plan if it exceeds approved scope.
+
+## Registration and completion
+
+Expect 20-45 minutes for registration/upgrades, roughly 30-50 minutes overall,
+with cold downloads/init sometimes longer. Budget at most 60 minutes of polling
+from VM creation, including command restarts. Announce downloads, init, apply,
+registration and teardown waits. Poll every 30 seconds and print each poll with
+visible elapsed time. Keep the session active; use bounded tool waits and continue
+collecting output without detaching the work or ending the turn while pending.
+
+Validate HTTP status, JSON shape and a non-empty recognized spec.site_state from
+/config/namespaces/system/sites/<exact-owned-site>. Distinguish transport errors,
+HTTP/auth errors, invalid JSON/shape, pending states and terminal failure. Unknown
+states are invalid, not success. ONLINE is the only registration success. Pending
+WAITING_FOR_REGISTRATION, PROVISIONING or UPGRADING can oscillate. FAILED or
+ERROR_IN_ORCHESTRATION is a failure. Bound transient retries within the original
+60-minute deadline, stop promptly on authorization or repeated invalid responses,
+and never return success on timeout. Preserve raw evidence privately and report
+which completion gates remain unmet.
+
+After 60 minutes stop polling and perform at most 10 minutes of read-only diagnostics:
+owned VM status and serial logs, NAT mappings, effective firewall rules, site/node
+responses and JWT age/validity without exposing its value. Do not retry indefinitely.
+No automatic taint, token rotation, VM reset, replacement or resource deletion.
+Propose a reviewed recovery plan checking state ownership, token validity and
+ignored user-data: rotating a token alone will not update VM metadata, and a reset
+can reuse stale data. Explain exact replacement/metadata effects and require
+approval of recovery changes before executing them. Keep the failed attempt.
+
+Completion requires evidence for ALL three gates:
+1. Validated site_state=ONLINE.
+2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
+   node's ens4=site_local_network (SLO, primary=true) and
+   ens5=site_local_inside_network (SLI, primary=false), matched to the owned VM NICs.
+3. A POST-registration terraform plan -detailed-exitcode returns 0. Exit 1 is error;
+   exit 2 is drift. Never apply that drift blindly or call an earlier clean plan success.
+
+Record connected_re separately from registration; validate its response shape and
+report observed RE identities/count without equating ONLINE with connectivity.
+Empty sli_address is not a reliable SLI check; inspect node_list instead.
+Summarize met/unmet gates, timestamps, immutable provider/image identities, total
+elapsed time, cost of keeping the VM and owned teardown instructions.
+
+## Teardown when authorized
+
+Create and inspect a saved destroy plan for ONLY the state-owned resources, apply
+that plan, and prove state is empty. Independently query exact owned GCP instance,
+boot disk, networks, subnets, router/NAT, firewall rules and licence probe, plus XC
+site, Secure Mesh v2 object and token. A valid absence response or validated list
+without the exact object proves absence; transport errors, malformed responses or
+empty unvalidated output do not. Bound XC deletion checks and preserve failures.
+Do not clean by broad prefix or delete unrelated resources. Report cleanup as
+incomplete until all owned resources and the XC site are independently absent.

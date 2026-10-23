@@ -1,9 +1,6 @@
 ---
 title: Operations
-description: Planning prompts for operations use cases.
+description: Complete prompts for deploying and operating infrastructure.
 ---
 
-Choose a use case, supply its inputs, and review the resulting plan.
-
-- [Plan an infrastructure change](./infrastructure-change/)
-- [Plan incident investigation](./incident-investigation/)
+- [Deploy a Customer Edge in GCP](/prompt-charity/en/use-cases/operations/gcp-customer-edge/): plan, approve, deploy and verify one dual-interface Secure Mesh Site v2.

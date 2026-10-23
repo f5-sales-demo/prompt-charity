@@ -1,0 +1,11 @@
+prompts/gcp-customer-edge.txt -> prompts/gcp-customer-edge.txt
+terraform/gcp-customer-edge/versions.tf -> gcp-customer-edge/versions.tf
+terraform/gcp-customer-edge/providers.tf -> gcp-customer-edge/providers.tf
+terraform/gcp-customer-edge/variables.tf -> gcp-customer-edge/variables.tf
+terraform/gcp-customer-edge/network.tf -> gcp-customer-edge/network.tf
+terraform/gcp-customer-edge/firewall.tf -> gcp-customer-edge/firewall.tf
+terraform/gcp-customer-edge/site.tf -> gcp-customer-edge/site.tf
+terraform/gcp-customer-edge/token.tf -> gcp-customer-edge/token.tf
+terraform/gcp-customer-edge/instance.tf -> gcp-customer-edge/instance.tf
+terraform/gcp-customer-edge/outputs.tf -> gcp-customer-edge/outputs.tf
+scripts/gcp-ce-support.py -> gcp-customer-edge/gcp-ce-support.py
