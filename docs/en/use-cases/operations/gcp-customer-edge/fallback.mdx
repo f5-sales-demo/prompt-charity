@@ -102,7 +102,10 @@ rule. Do not bypass policies or use an unreviewed target/recomputed plan.
 
 After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
 hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
-receipts and propagation deadline. Never save credential values or full policies. The helper provides
+receipts and propagation deadline. Never save credential values or full policies.
+Checkpoint-only approval permits only that checkpoint, not a native session-memory plan file such as
+`plan.md` in native session memory. Disable planning file/memory-writing and delegation tools for the session and keep the
+plan in chat. Automatic platform chat/tool history is allowed. The helper provides
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
 invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.

@@ -5,6 +5,14 @@ Do not edit files, install tools, create licence probes, initialize Terraform,
 deploy, or change external state until I explicitly approve your scoped plan.
 Stop after the plan and wait for approval. Once approved, implement and verify
 that plan continuously, keeping the session active through registration.
+During planning, disable file-writing, memory-writing and delegation tools for
+this session; allow only read-only investigation. Do not invoke a memory tool to create
+a plan artifact, including plan.md in native session memory. Return the plan in chat.
+If the IDE's Plan mode normally saves a file, skip that optional step or disable
+its writing tool for this session; report a mandatory-writing limitation before
+proceeding. Automatic platform chat/tool history is allowed. Do not change the
+user's normal profile or global settings to enforce this boundary.
+After file-creation approval, enable only the writing tools needed for that scope.
 
 ## Objective and inputs
 
@@ -327,6 +335,10 @@ gate observations, outstanding administrator requests, scoped approvals,
 installation receipts and the original propagation deadline. Store no token, key
 contents, complete IAM policy, credential-bearing response or raw transcript in
 it. Raw failures belong only in separate private evidence with secret handling.
+A checkpoint-only approval authorizes ONLY that checkpoint. It does not authorize
+native session-memory plan files, workspace plan.md, scripts or other artifacts.
+Keep the plan and IAM-team request in the conversation until their own approved
+file-creation phase; private storage or storage owned by an agent is not an exemption.
 Copy the five complete prerequisite rows into the checkpoint, including status,
 reason/evidence, caller, target resource, owner, next action and observation time.
 PASS rows also retain a responsible team and recheck action; required metadata
