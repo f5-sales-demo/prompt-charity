@@ -34,6 +34,11 @@ mechanisms. Select commands appropriate to the discovered environment rather
 than assuming a shell, operating system, harness, plugin or tool name. Never
 print credential values, even while checking whether a variable is present.
 Report only presence, identity where needed, status and redacted evidence.
+Load credential sources only for named-variable presence checks and authenticated
+requests. Never display, byte-dump, trace or log a credential source, even through
+a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
+to diagnose credentials or shell behavior. Diagnose shell/path issues without
+reading secret bytes; use task-specific variable names that cannot alter PATH.
 
 Verify the active GCP identity and project, API access, and Terraform Application
 Default Credentials independently of CLI login. Do not print access tokens.

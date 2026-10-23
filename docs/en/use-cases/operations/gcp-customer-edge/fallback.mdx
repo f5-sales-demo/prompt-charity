@@ -37,7 +37,7 @@ effective firewall policy. Higher-level deny rules may override the VPC rules in
 
 Compare images by name and creation time in `f5-7626-networks-public`; pin the selected `f5xc-ce-crt-*` full name and immutable ID. Inspect image licences read-only. Inspect existing Terraform state and exact owned GCP/XC resources to distinguish fresh, resumed and orphaned deployments. Do not adopt or delete unowned resources.
 
-Keep XC credentials in an inherited environment or a private credential file outside the Terraform directory. Verify access with a validated read-only API response. Report credential presence only; never expand the value into a presence message.
+Keep XC credentials in an inherited environment or a private credential file outside the Terraform directory. Verify access with a validated read-only API response. Report credential presence only; never expand the value into a presence message. Never display, byte-dump, trace or log a credential source, including through redaction filters. Diagnose shell and path behavior without reading secret bytes.
 
 Present a scoped plan including exact provider version/asset/checksum, image, project/zone, names, CIDRs, cost, optional SSH and cleanup. **Require explicit plan approval before installation, file creation, the licence probe or deployment.** During planning, use read-only list/get/describe/help operations. Never run a mutating command to test syntax, assume a dry-run flag, or background and cancel a creation command. Licence acceptance remains unverified until the approved probe. All following steps belong to that approved implementation.
 
