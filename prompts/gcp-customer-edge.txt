@@ -12,12 +12,16 @@ Deploy one Secure Mesh Site v2 Customer Edge in an existing authorized test GCP
 project, using Terraform and two network interfaces. This is a greenfield PoC.
 
 GCP project: [Existing project ID]
+GCP authentication: [Existing ADC, service-account impersonation (recommended for
+a service account), or an organization-required private service-account JSON key]
+GCP service account: [Full service-account email and its owning project, if used]
+GCP credential source: [Existing local ADC or private JSON key-file path; never paste keys]
 Region and zone: [Region and zone, or request an evidence-based recommendation]
 Name prefix: [Unique DNS-safe short prefix]
 SLO subnet: [Non-overlapping private /26 CIDR, or request a checked proposal]
 SLI subnet: [Different non-overlapping private /26 CIDR, or request a checked proposal]
 F5 Distributed Cloud tenant: [Authorized tenant API URL ending in /api]
-Credential source: [Private credential file or inherited environment; never paste secrets]
+XC credential source: [Private credential file or inherited environment; never paste secrets]
 SSH: [None by default; optional public key and narrowly scoped source CIDRs]
 
 Exclude HA, workload VMs, load balancers, origin pools, Windows VM provisioning,
@@ -42,6 +46,9 @@ reading secret bytes; use task-specific variable names that cannot alter PATH.
 
 Verify the active GCP identity and project, API access, and Terraform Application
 Default Credentials independently of CLI login. Do not print access tokens.
+Use the selected GCP identity for Terraform and every GCP discovery, licence-probe,
+deployment and cleanup-verification command. Never silently fall back to the
+user's own compute permissions when a service account was requested.
 During planning, use only list/get/describe/help operations. Never execute create,
 update, delete, reset or install commands to test syntax or permissions. Never
 assume a dry-run flag, background a mutation and kill it, or treat cancellation
@@ -81,11 +88,76 @@ recommendations; do not ask again for values already supplied. Never request
 that secrets be put in chat. A credential file must be private, outside the
 Terraform directory, and loaded into every command that needs it without logging.
 
+## GCP service-account authentication
+
+When a service account is requested, recommend impersonation with short-lived
+credentials. Distinguish its owning project from the target deployment project.
+The caller needs roles/iam.serviceAccountTokenCreator on that service account;
+the service account separately needs create/read/update/delete permissions for
+the target project's instances, disks, networks, subnets, firewall rules, routers
+and NAT. roles/compute.admin is a broad starting role an administrator may approve;
+prefer a customer-approved custom role when available. Token Creator alone does
+not grant compute permissions. roles/iam.serviceAccountUser is needed only if
+attaching a service account to a VM; it does not permit impersonation. This recipe
+does not require an attached VM service account. Do not add one merely to run
+Terraform as a service account.
+
+Check Compute Engine and IAM Service Account Credentials API availability and
+any quota-project serviceusage.services.use requirement for the selected ADC
+configuration. Report missing permissions/APIs as prerequisites for the customer
+administrator. Do not create service accounts or keys, grant IAM roles, enable
+APIs, or alter organization policies as part of this CE deployment.
+
+Inspect existing authentication read-only. If setup is missing, present the
+authentication prerequisite plan and wait for explicit approval before login,
+ADC-file creation or local authentication changes. Human browser authentication
+belongs to the customer. Then rerun discovery as the selected identity before
+presenting the deployment plan. No prerequisite setup authorizes deployment.
+
+For approved impersonation setup, prefer local impersonated ADC. Select native
+commands and explain the equivalent of:
+gcloud auth login
+gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT_EMAIL
+Terraform's Google provider uses this ADC automatically, without a JSON key.
+For each supporting GCP CLI operation, explicitly use
+--impersonate-service-account=SERVICE_ACCOUNT_EMAIL and --project=TARGET_PROJECT_ID.
+CLI login alone does not make Terraform impersonate the service account.
+
+An alternative is existing primary-user ADC with the Google provider's
+impersonate_service_account setting or GOOGLE_IMPERSONATE_SERVICE_ACCOUNT.
+Use exactly one Terraform impersonation method: do not add provider impersonation
+on top of already impersonated ADC. Detect conflicting explicit credentials or
+GOOGLE_APPLICATION_CREDENTIALS before selecting ADC; resolve them within the
+approved task environment without changing unrelated CLI profiles.
+
+If the customer requires an existing JSON key, use its private file path outside
+the Terraform/input directory via GOOGLE_APPLICATION_CREDENTIALS. Configure the
+task's GCP CLI to use that same service account and key, using the native
+equivalent of gcloud auth activate-service-account SERVICE_ACCOUNT_EMAIL
+--key-file=PRIVATE_KEY_PATH --project=TARGET_PROJECT_ID only after approval.
+Do not create or download a key. Do not paste its contents, inline credentials
+into HCL/tfvars, or place credential values in command arguments or transcripts.
+Keep key files and local credential stores owner-only or equivalently protected.
+
+Verify with authenticated read-only project/compute queries under the selected
+identity and a private ADC-backed request for Terraform; never display generated
+access tokens. Record method, effective service-account email, target project and
+any quota project. If verification fails, stop dependent work and report the
+specific missing prerequisite; do not test permissions with resource creation.
+GCP authentication is separate from private GitHub provider-release access and
+the XC API token. A private .env may supply F5XCProvider_URL and
+F5XCProvider_API_TOKEN; .env files are not loaded automatically by Terraform.
+Load only the required named values privately into each process that needs them.
+Keep customer-owned service accounts, IAM bindings and credential sources after
+CE teardown; they are not owned resources of this Terraform state.
+
 ## Plan and approval boundary
 
 Present the discovered identities, prerequisites, selected exact provider asset
 and checksum, pinned image, zone, CIDRs, SSH choice, resource ownership, proposed
-cost and teardown. Give objective acceptance criteria and ordered implementation,
+cost and teardown. Include the GCP authentication method, effective service
+account if used, and separately approved authentication setup. Give objective
+acceptance criteria and ordered implementation,
 verification and recovery steps. List proposed installations, file creation,
 licence probe, and deployment explicitly. Planning must make no deployment changes.
 Stop after the plan. Require explicit approval before any of those mutations.

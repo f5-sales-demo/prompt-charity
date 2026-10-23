@@ -10,6 +10,12 @@ import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 
 Use an existing authorized test GCP project and F5 Distributed Cloud tenant with permission to create and delete a site. You need GCP CLI authentication and separate Terraform Application Default Credentials, sufficient N2 quota, and Terraform 1.5 or newer. Your agent discovers the host and chooses appropriate native commands.
 
+**Using a GCP service account:** select impersonation in the prompt's GCP authentication input and supply the full
+service-account email and owning project. The single prompt includes prerequisite checks, approved local authentication
+setup, matching Terraform/CLI identities and a private JSON-key alternative when required by your organization.
+Impersonation needs Token Creator on the service account and separate deployment permissions in the target project.
+Administrator IAM/API changes are prerequisites, outside the CE deployment. Keep credentials out of chat.
+
 **Private provider access comes first:** obtain an invitation to
 [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and
 authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the
@@ -46,9 +52,16 @@ Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/operations/gc
 
 ## Qualification status
 
-This canonical prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode, received scoped implementation approval, passed all three completion gates, and finished independently verified teardown before the next run.
+The current prompt includes explicit GCP service-account authentication instructions. Those authentication paths have
+been checked against Google's documentation but have not been live-qualified through the three harnesses.
 
-Canonical SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
+The earlier prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode,
+received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
+before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
+
+Current canonical SHA256: `7ae7d8c92736d9158e205d8f84fdf65c6ccecc1b6b74f391bf5f936108dafbec`.
+
+Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
 
 | Harness | Zone | Gates and cleanup | Sanitized evidence |
 | --- | --- | --- | --- |
@@ -56,4 +69,4 @@ Canonical SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e
 | Codex CLI 0.162.1 on Ubuntu | `europe-west1-b` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/codex-cli-ubuntu.json) |
 | OpenCode 1.18.18 on Ubuntu | `asia-southeast1-a` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/opencode-ubuntu.json) |
 
-Receipts record the exact provider/image identities, gate evidence, recovery notes and cleanup results. OpenCode used a task-local Google Vertex configuration with existing ADC. Failed and superseded attempts, sensitive state, metadata and raw transcripts remain private. These results qualify this prompt hash; recheck prerequisites and current release/image identities for your own deployment.
+Receipts record the exact provider/image identities, gate evidence, recovery notes and cleanup results. OpenCode used a task-local Google Vertex configuration with existing ADC. Failed and superseded attempts, sensitive state, metadata and raw transcripts remain private. These results qualify the earlier hash only; recheck prerequisites and current release/image identities for your own deployment.
