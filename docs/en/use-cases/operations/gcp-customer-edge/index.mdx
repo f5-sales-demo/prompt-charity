@@ -1,0 +1,43 @@
+---
+title: Deploy a Customer Edge in GCP
+description: Plan, approve, deploy and verify one dual-interface F5 Distributed Cloud Customer Edge.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
+
+## Before you begin
+
+Use an existing authorized test GCP project and F5 Distributed Cloud tenant with permission to create and delete a site. You need GCP CLI authentication and separate Terraform Application Default Credentials, sufficient N2 quota, and Terraform 1.5 or newer. Your agent discovers the host and chooses appropriate native commands.
+
+**Private provider access comes first:** obtain an invitation to [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the newest non-draft release, including prereleases, and rejects unsupported platform assets. The release checked on 2026-10-22 is `v0.9.7`.
+
+## Expected architecture
+
+One `n2-standard-8` instance has separate SLO (outside) and SLI (inside) VPCs/subnets. SLO Cloud NAT supplies outbound access; the VM has no public IP. Secure Mesh Site v2 uses JWT registration. NIC order is explicit: `ens4 → SLO`, `ens5 → SLI`. The default saved Terraform plan creates 15 resources, or 16 with optional SSH.
+
+Supply your project, region/zone, unique short name prefix, two independently checked non-overlapping private `/26` ranges, authorized tenant API URL and private credential source. SSH defaults to none. Credentials must stay outside chat, published configuration and the Terraform input directory. State, saved plans and VM metadata must remain private.
+
+## Copy the complete prompt
+
+Enable native planning mode in your chosen agent, then copy this entire block. Replace bracketed inputs or ask for checked proposals. Review its discovered environment and scoped plan before approving installations, file creation, the licence probe or deployment.
+
+<a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
+
+<Code code={prompt} lang="text" title="Complete customer prompt" />
+
+## Timing and completion
+
+Allow roughly 30-50 minutes, usually 20-45 minutes for registration and upgrades. Cold downloads may take longer. The agent polls every 30 seconds with visible elapsed time and keeps the session active. After 60 minutes it preserves evidence and performs bounded diagnostics; a timeout or invalid response cannot pass.
+
+Completion requires `ONLINE`, verified `ens4 → SLO` and `ens5 → SLI` roles, and a post-registration `terraform plan -detailed-exitcode` returning zero. Regional Edge connectivity is recorded separately. Do not accept a pending status or an earlier clean plan as completion.
+
+## Teardown and fallback
+
+When teardown is authorized, inspect and apply a saved destroy plan, then independently prove the owned GCP resources and XC site are absent. This includes the temporary marketplace licence probe. Keep private evidence until cleanup is verified.
+
+Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/operations/gcp-customer-edge/fallback/) if your agent cannot execute the workflow. It contains the nine grouped Terraform files and the same acceptance boundaries.
+
+## Qualification status
+
+Fresh qualification of this candidate is pending. Source validation does not establish live deployment compatibility. Sanitized qualification receipts will identify the exact prompt hash, harness/version, location, provider/image identities, completion gates and cleanup results; raw transcripts remain private.
