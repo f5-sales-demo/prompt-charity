@@ -159,7 +159,9 @@ them can strip the discovered NIC configuration. These exclusions also hide drif
 so verify those fields independently using the API after registration.
 
 Use f5xc_token with type=["JWT"], site_name bound to the site, and pass its .content
-string to the node, never .id or .content[0]. Registration JWT lifetime is 24 hours.
+string to the node, never .id or .content[0]. Do not assume a fixed JWT lifetime.
+Inspect the issued token's iat/exp timestamps privately and use its actual expiration
+for validity, resume and recovery decisions; lifetime can vary with server policy.
 Cloud-init writes only token: <JWT> in /etc/vpm/user_data, owned by root with 0600
 permissions. Do not use SMSv1 /etc/vpm/config.yaml, Vpm/Kubernetes nesting,
 certified_hardware or a registration_approval resource.
