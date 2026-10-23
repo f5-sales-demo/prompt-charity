@@ -54,10 +54,7 @@
   "regional_edges": {
     "recorded_separately": true,
     "count": 2,
-    "names": [
-      "pa2-par",
-      "pa4-par"
-    ]
+    "names": ["pa2-par", "pa4-par"]
   },
   "recovery_notes": [
     "Three model-service capacity interruptions preserved. Continued the same thread and model without cloud reset, replacement, token rotation or drift apply."

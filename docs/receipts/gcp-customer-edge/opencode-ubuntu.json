@@ -55,10 +55,7 @@
   "regional_edges": {
     "recorded_separately": true,
     "count": 2,
-    "names": [
-      "sg3-sin",
-      "jk1-jkt"
-    ]
+    "names": ["sg3-sin", "jk1-jkt"]
   },
   "recovery_notes": [
     "Empty native response with unknown finish preserved; continued the same session to finish gates and cleanup.",

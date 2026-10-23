@@ -51,10 +51,7 @@
   "regional_edges": {
     "recorded_separately": true,
     "count": 2,
-    "names": [
-      "dc12-ash",
-      "ny8-nyc"
-    ]
+    "names": ["dc12-ash", "ny8-nyc"]
   },
   "recovery_notes": [
     "Transient transport errors preserved; bounded retry of post-registration plan changed exit 1 to exit 0. No drift applied.",
