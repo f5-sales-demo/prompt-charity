@@ -37,14 +37,51 @@ effective firewall policy. Higher-level deny rules may override the VPC rules in
 
 ### Optional GCP service account
 
-The complete copyable prompt already includes this choice and its setup instructions. For the fallback, prefer
-service-account impersonation. The caller needs `roles/iam.serviceAccountTokenCreator` on the service account, while
-the service account needs separate deployment permissions in the target project. `roles/compute.admin` is a broad
-starting role for customer-administrator review; an approved custom role may narrow it. Token Creator does not grant
-compute access. `roles/iam.serviceAccountUser` is only needed when attaching an identity to a VM; this recipe does not
-require a VM service account. Check Compute Engine and IAM Service Account Credentials API availability and any
-quota-project `serviceusage.services.use` requirement. Missing IAM/API prerequisites belong to the customer administrator;
-do not create keys, grant roles or enable APIs as part of this deployment.
+Use the [complete prompt's IAM preflight](/prompt-charity/en/use-cases/operations/gcp-customer-edge/) before local setup.
+Identify the caller, Terraform identity, service-account owning project, deployment project, quota project and credential
+method. Return five gates: identity selection, impersonation access, deployment permissions, APIs/quota project and
+CLI/ADC authentication. Each reports `PASS`, `BLOCKED` or `UNKNOWN`, evidence, observation time, owner and next action.
+Planning returns the table and one private IAM-team request in chat; it creates no files, including `plan.md`.
+
+Test effective permissions on the exact resource as the identity being checked. The caller needs
+`iam.serviceAccounts.getAccessToken` on the requested service account. A Token Creator grant to the service account
+itself does not grant the human caller access. A correct owning-project grant can work, although a service-account-level
+grant is narrower. Use resource-specific `testIamPermissions` and authenticated read-only requests; a generic 403,
+unreadable policy, conditional uncertainty, malformed response or transport failure is `UNKNOWN`, never an assumed
+Token Creator diagnosis. Token Creator does not grant compute access. Preserve approved custom roles;
+`roles/compute.admin` is a broad option requiring administrator approval. This recipe needs no attached VM identity.
+
+The private IAM-team request identifies the caller, exact target and projects, observed missing permission, administrator
+command and recheck procedure. Do not send it automatically or ask the sales engineer to change IAM. Keep IAM
+administration separate from local setup and deployment approval. After administrator confirmation, recheck every
+30 seconds for at most ten minutes, preserving the original deadline across resumes. Timeout pauses and preserves
+evidence; it does not prove the grant is wrong. Group membership changes may take longer.
+
+The helper's optional `iam-preflight` command emits JSON with the same five gates without saving files or changing IAM.
+Run it only when the helper is already available or its download was separately approved; the prompt is self-contained.
+Use the actual selected values, keeping output private:
+
+```bash
+python3 gcp-ce-support.py iam-preflight \
+  --caller 'user:operator@example.com' \
+  --service-account 'ce@example-project.iam.gserviceaccount.com' \
+  --service-account-project example-project \
+  --deployment-project example-deployment \
+  --quota-project example-quota \
+  --credential-method impersonated-adc \
+  --image-name '<resolved-exact-f5xc-ce-crt-image-name>'
+```
+
+Exit 0 means all IAM/authentication gates passed; exit 2 means prerequisites remain blocked or unknown. Independently
+check the selected image, regional capacity, CIDRs and XC/private-provider access before deployment. Explicit key sources
+that this helper cannot independently verify remain unknown and require equivalent native credential-aware checks.
+
+After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
+hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
+receipts and propagation deadline. Never save credential values or full policies. The helper provides
+`save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
+invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
+restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
 
 Inspect existing credentials during read-only planning. Login, ADC-file creation and local authentication changes
 require explicit setup approval, followed by discovery as the selected identity and review of the deployment plan.
@@ -238,7 +275,7 @@ can take longer; teardown often takes several minutes. Announce each wait. Keep 
 through bounded tool waits. The poller prints every attempt at 30-second intervals and saves responses to a private
 directory. Only `ONLINE` returns success; timeout returns 2 and failures return 1.
 
-<a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(support, 'utf8').toString('base64')}`} download="gcp-ce-support.py">Download checksum and polling helper (Python 3.11+)</a>
+<a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(support, 'utf8').toString('base64')}`} download="gcp-ce-support.py">Download IAM, checksum and polling helper (Python 3.11+)</a>
 
 <Code code={support} lang="python" title="gcp-ce-support.py" />
 

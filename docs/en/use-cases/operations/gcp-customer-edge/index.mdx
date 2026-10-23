@@ -11,8 +11,10 @@ import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 Use an existing authorized test GCP project and F5 Distributed Cloud tenant with permission to create and delete a site. You need GCP CLI authentication and separate Terraform Application Default Credentials, sufficient N2 quota, and Terraform 1.5 or newer. Your agent discovers the host and chooses appropriate native commands.
 
 **Using a GCP service account:** select impersonation in the prompt's GCP authentication input and supply the full
-service-account email and owning project. The single prompt includes prerequisite checks, approved local authentication
-setup, matching Terraform/CLI identities and a private JSON-key alternative when required by your organization.
+service-account email and owning project. The single prompt returns five IAM gates with evidence, owners and next actions, plus a private request for your IAM
+team when access is blocked. It pauses for administrator confirmation, rechecks access for at most ten minutes and
+keeps IAM administration, approved local authentication setup and CE deployment as separate approvals. A private
+checkpoint supports resume after setup approval; planning creates no workspace files.
 Impersonation needs Token Creator on the service account and separate deployment permissions in the target project.
 Administrator IAM/API changes are prerequisites, outside the CE deployment. Keep credentials out of chat.
 
@@ -52,14 +54,15 @@ Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/operations/gc
 
 ## Qualification status
 
-The current prompt includes explicit GCP service-account authentication instructions. Those authentication paths have
-been checked against Google's documentation but have not been live-qualified through the three harnesses.
+The current prompt includes an evidence-based IAM preflight, administrator handoff and private checkpoint protocol.
+Deterministic fixtures cover permission failures, uncertain responses, propagation deadlines and credential handling.
+The Mac VS Code Copilot deployment qualification remains pending; source tests do not qualify the live workflow.
 
 The earlier prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode,
 received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
 before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
 
-Current canonical SHA256: `7ae7d8c92736d9158e205d8f84fdf65c6ccecc1b6b74f391bf5f936108dafbec`.
+Current canonical SHA256: `09343264ed085c5f5d0cd52cab2f76d279ac3407e3ac2a531610003df20e82d1`.
 
 Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
 

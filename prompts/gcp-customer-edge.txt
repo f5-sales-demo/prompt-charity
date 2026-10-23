@@ -11,7 +11,9 @@ that plan continuously, keeping the session active through registration.
 Deploy one Secure Mesh Site v2 Customer Edge in an existing authorized test GCP
 project, using Terraform and two network interfaces. This is a greenfield PoC.
 
-GCP project: [Existing project ID]
+GCP project: [Existing deployment project ID]
+GCP caller principal: [Human user:email or serviceAccount:email running Terraform]
+GCP quota project: [Explicit quota project ID for ADC/API requests]
 GCP authentication: [Existing ADC, service-account impersonation (recommended for
 a service account), or an organization-required private service-account JSON key]
 GCP service account: [Full service-account email and its owning project, if used]
@@ -49,7 +51,9 @@ Default Credentials independently of CLI login. Do not print access tokens.
 Use the selected GCP identity for Terraform and every GCP discovery, licence-probe,
 deployment and cleanup-verification command. Never silently fall back to the
 user's own compute permissions when a service account was requested.
-During planning, use only list/get/describe/help operations. Never execute create,
+During planning, use only read-only list/get/describe/help operations, permission
+tests and short-lived authentication requests. These tests may use HTTP POST;
+they must never change IAM, APIs, resources or local authentication configuration. Never execute create,
 update, delete, reset or install commands to test syntax or permissions. Never
 assume a dry-run flag, background a mutation and kill it, or treat cancellation
 as proof that no resource was created. Licence acceptance can only be proved by
@@ -88,25 +92,94 @@ recommendations; do not ask again for values already supplied. Never request
 that secrets be put in chat. A credential file must be private, outside the
 Terraform directory, and loaded into every command that needs it without logging.
 
+## GCP IAM preflight and administrator handoff
+
+Before checking permissions, identify the actual caller principal, requested
+Terraform service account and its owning project, deployment project, explicit
+quota project and credential method. The human running Terraform and an optional
+identity attached to the VM are different. This recipe requires no VM service
+account; do not attach one merely to run Terraform as a service account.
+
+Return one prerequisite table in the conversation, without creating workspace
+files (including plan.md). Every row has gate, PASS/BLOCKED/UNKNOWN, reason and
+evidence, caller, target resource, responsible team, next action and UTC observation
+time. Never include tokens, key contents or complete IAM policies. The five gates:
+1. Identity selection: verified caller and effective Terraform identity, requested
+   service account/project, deployment project and credential method agree.
+2. Impersonation access: the verified caller has iam.serviceAccounts.getAccessToken
+   on the exact requested service account, and a short-lived token request works.
+   For direct ADC/key authentication, explicitly report impersonation not used.
+3. Deployment permissions: the selected Terraform identity has the needed
+   create/read/update/delete permissions for instances, disks, VPC networks,
+   subnets, firewall rules, routers and NAT in the deployment project. Include
+   operation polling, image use and external image read access. If a VM identity
+   is explicitly requested, separately test iam.serviceAccounts.actAs on it.
+4. APIs/quota project: Compute Engine, IAM and IAM Credentials APIs are enabled
+   where needed, and the actual quota-project identity has
+   serviceusage.services.use. Independently inspect regional quotas and machine
+   availability; API availability alone does not pass capacity checks.
+5. CLI/ADC authentication: independent authenticated read-only requests verify
+   both paths use the selected identity. Expired auth, conflicting credential
+   sources, double impersonation or unverified ADC identity cannot pass.
+
+Use resource-specific testIamPermissions authenticated as the identity being
+checked: POST https://iam.googleapis.com/v1/projects/-/serviceAccounts/EMAIL:testIamPermissions
+with permissions=["iam.serviceAccounts.getAccessToken"] using the caller; POST
+https://cloudresourcemanager.googleapis.com/v1/projects/PROJECT:testIamPermissions
+with the exact deployment permissions using the Terraform identity; POST
+https://compute.googleapis.com/compute/v1/projects/f5-7626-networks-public/global/images/IMAGE/testIamPermissions
+with permissions=["compute.images.useReadOnly"] using that identity for the exact
+resolved CE image; and the same project endpoint for serviceusage.services.use in the explicit quota project.
+Keep bearer tokens only in private process memory. Verify identities through an
+independent authenticated identity request, not the requested account name alone.
+Test short-lived impersonation with the IAM Credentials generateAccessToken
+endpoint, privately validate accessToken/expireTime and use it for read-only
+compute requests. Check API states through authenticated Service Usage GETs.
+A successful permission-list response must have a valid JSON object and a list
+of permission strings (an omitted permissions field means none granted). Missing
+requested permissions in that validated response are BLOCKED. A generic 403,
+unreadable policy, conditional-policy uncertainty, invalid response, transport
+failure or unavailable identity evidence is UNKNOWN with its own next action;
+never turn a generic 403 into a Token Creator diagnosis. Policy bindings are
+supporting evidence only: narrow and project-level grants can both work; evaluate
+conditions, deny policies and current effective access rather than inferring
+success from a visible binding. Recheck missing evidence before dependent work.
+
+The intended caller needs impersonation permission ON the requested service
+account. Granting Token Creator to the service account itself does not grant the
+human caller access. roles/iam.serviceAccountTokenCreator on that service account
+is a standard option; a correct project-level grant in its owning project can
+also work, while a service-account-level grant is narrower. Token Creator does
+not grant deployment permissions. Preserve approved custom roles. Describe
+roles/compute.admin only as a broad option requiring administrator approval;
+never silently recommend Owner or Editor. roles/iam.serviceAccountUser grants
+actAs for an attached VM identity, not getAccessToken for impersonation.
+
+For blocked access, return ONE private, copyable request for the customer's IAM
+team in the conversation, containing the verified caller principal, exact target
+service account and owning project, deployment/quota projects, missing permission
+or approved role, observed sanitized failure/time and recheck steps. For verified
+missing impersonation include this administrator command with actual selected
+values, properly quoted for the discovered shell:
+gcloud iam service-accounts add-iam-policy-binding SERVICE_ACCOUNT_EMAIL --project=SERVICE_ACCOUNT_PROJECT --member=CALLER_PRINCIPAL --role=roles/iam.serviceAccountTokenCreator
+State that a binding to the service account itself is insufficient. For compute
+or API blockers ask the administrator to retain approved custom roles or enable
+only required APIs; do not invent a broad grant command. UNKNOWN requests ask for
+investigation of the specific evidence failure, not an assumed IAM grant.
+Do not send the request automatically or ask the sales engineer to change IAM.
+Do not create service accounts/keys, grant roles, enable APIs or alter organization
+policies as part of CE deployment. IAM administration is a separate approval and
+operator step from local authentication setup and from deployment approval.
+
+Pause dependent work until administrator confirmation. Only then recheck effective
+access every 30 seconds, for at most ten minutes from confirmation, including
+restarts. Retain sanitized observations privately after local setup approval;
+before that keep the table/request in the conversation. A timeout preserves
+failures and pauses: it does not prove a grant is wrong. Group membership changes
+may take longer. Do not repeat an IAM change or restart the propagation budget.
+After access works, refresh all five gates before proposing deployment.
+
 ## GCP service-account authentication
-
-When a service account is requested, recommend impersonation with short-lived
-credentials. Distinguish its owning project from the target deployment project.
-The caller needs roles/iam.serviceAccountTokenCreator on that service account;
-the service account separately needs create/read/update/delete permissions for
-the target project's instances, disks, networks, subnets, firewall rules, routers
-and NAT. roles/compute.admin is a broad starting role an administrator may approve;
-prefer a customer-approved custom role when available. Token Creator alone does
-not grant compute permissions. roles/iam.serviceAccountUser is needed only if
-attaching a service account to a VM; it does not permit impersonation. This recipe
-does not require an attached VM service account. Do not add one merely to run
-Terraform as a service account.
-
-Check Compute Engine and IAM Service Account Credentials API availability and
-any quota-project serviceusage.services.use requirement for the selected ADC
-configuration. Report missing permissions/APIs as prerequisites for the customer
-administrator. Do not create service accounts or keys, grant IAM roles, enable
-APIs, or alter organization policies as part of this CE deployment.
 
 Inspect existing authentication read-only. If setup is missing, present the
 authentication prerequisite plan and wait for explicit approval before login,
@@ -150,6 +223,29 @@ F5XCProvider_API_TOKEN; .env files are not loaded automatically by Terraform.
 Load only the required named values privately into each process that needs them.
 Keep customer-owned service accounts, IAM bindings and credential sources after
 CE teardown; they are not owned resources of this Terraform state.
+
+## Private checkpoint and same-session resume
+
+During native planning, return prerequisites and the IAM-team request in chat;
+create no workspace files, downloaded helper or plan.md. This prompt contains
+sufficient instructions to perform the checks without downloading a helper.
+After explicit local setup approval, save an owner-only checkpoint outside the
+workspace with the SHA256 of this exact prompt, caller, Terraform service account,
+service-account project, deployment/quota projects, credential method, completed
+gate observations, outstanding administrator requests, scoped approvals,
+installation receipts and the original propagation deadline. Store no token, key
+contents, complete IAM policy, credential-bearing response or raw transcript in
+it. Raw failures belong only in separate private evidence with secret handling.
+
+On resume reload the checkpoint and reverify effective access and both auth paths;
+"the grant is done" is confirmation to recheck, never proof of access. Changes to
+caller, service account, either project, quota project or credential method
+invalidate affected observations and dependent deployment approval; a changed
+prompt hash requires review against the revised scope. Recheck all five gates
+before deployment. Preserve installation receipts: do not repeat approved
+installations on session restart, silently change identities or deploy
+automatically. IAM confirmation, local setup approval and scoped deployment
+approval remain separate. Passing authentication never authorizes deployment.
 
 ## Plan and approval boundary
 
