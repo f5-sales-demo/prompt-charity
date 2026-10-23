@@ -21,6 +21,8 @@ resource "google_compute_network" "slo" {
 }
 
 resource "google_compute_subnetwork" "slo" {
+  #checkov:skip=CKV_GCP_26:Optional persistent VPC Flow Logs are excluded from this disposable PoC; qualification captures private diagnostics.
+  #checkov:skip=CKV_GCP_74:SLO reaches required external services through Cloud NAT.
   name          = "${local.name}-slo-subnet"
   ip_cidr_range = var.slo_cidr
   region        = var.gcp_region
@@ -30,12 +32,15 @@ resource "google_compute_subnetwork" "slo" {
 # ---------- SLI (inside) ----------
 
 resource "google_compute_network" "sli" {
+  #checkov:skip=CKV2_GCP_18:SLI has no workloads or external NAT; implied ingress deny is intentional. CE egress rules belong to SLO.
   name                    = "${local.name}-sli-vpc"
   auto_create_subnetworks = false
   description             = "SLI (inside) network for F5XC CE ${local.name}"
 }
 
 resource "google_compute_subnetwork" "sli" {
+  #checkov:skip=CKV_GCP_26:Optional persistent VPC Flow Logs are excluded from this disposable PoC; qualification captures private diagnostics.
+  #checkov:skip=CKV_GCP_74:SLI contains only the inside CE NIC and no Google API consumers.
   name          = "${local.name}-sli-subnet"
   ip_cidr_range = var.sli_cidr
   region        = var.gcp_region

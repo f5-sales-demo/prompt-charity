@@ -92,6 +92,8 @@ CIDRs and image. Fill those inputs with checked customer values. No XC token bel
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
 
+The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
+
 The cloud-init writes `/etc/vpm/user_data` as root with 0600 permissions. JWT `.content` is a string; `.id` is not the
 registration token. Interface order assigns `ens4` to SLO and `ens5` to SLI. Registration fills `node_list`; the site
 lifecycle exclusions prevent Terraform from stripping that reported configuration. These exclusions hide some drift, so

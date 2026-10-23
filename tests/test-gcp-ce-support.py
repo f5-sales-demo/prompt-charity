@@ -12,6 +12,8 @@ from pathlib import Path
 spec = importlib.util.spec_from_file_location(
     "support", Path(__file__).resolve().parents[1] / "scripts/gcp-ce-support.py"
 )
+assert spec is not None
+assert spec.loader is not None
 support = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(support)
 
@@ -50,7 +52,7 @@ class SupportTests(unittest.TestCase):
             )
 
     def test_release_manifest_checks_native_asset_and_checksum_file(self):
-        releases = [
+        releases: list[dict] = [
             {
                 "tag_name": "v0.9.8-rc.1",
                 "published_at": "2026-02-01",
@@ -84,7 +86,7 @@ class SupportTests(unittest.TestCase):
 
     def poll(self, responses):
         clock = [0.0]
-        output = []
+        output: list[str] = []
 
         def sleep(seconds):
             clock[0] += seconds

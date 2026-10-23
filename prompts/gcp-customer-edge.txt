@@ -166,7 +166,8 @@ certified_hardware or a registration_approval resource.
 
 Create one n2-standard-8 VM, can_ip_forward=true, 80 GB pd-balanced boot disk,
 pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
-has access_config. Set VmDnsSetting="ZonalPreferred". Do not enable unsupported
+has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
+so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
 Shielded VM features. VM lifecycle ignores metadata["user-data"] so rotating a
 JWT does not implicitly replace a healthy VM. Explicit depends_on must include
 the site, token and SLO NAT so the VM boots with working egress.

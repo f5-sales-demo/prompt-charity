@@ -15,6 +15,9 @@ locals {
 }
 
 resource "google_compute_instance" "ce" {
+  #checkov:skip=CKV_GCP_36:IP forwarding is required for the CE router.
+  #checkov:skip=CKV_GCP_38:Disposable test CE uses Google-managed disk encryption; customer-supplied keys are outside this PoC.
+  #checkov:skip=CKV_GCP_39:The pinned CE image lacks UEFI_COMPATIBLE; Shielded VM is unsupported.
   name         = local.name
   machine_type = var.machine_type
   zone         = var.gcp_zone
@@ -62,6 +65,9 @@ resource "google_compute_instance" "ce" {
     # Some F5 docs print "ZonePreferred", which is not valid -- GCP ignores
     # unrecognised values and falls back to the project default.
     VmDnsSetting = "ZonalPreferred"
+
+    # Optional SSH must not inherit project-wide public keys.
+    block-project-ssh-keys = "true"
 
     ssh-keys = var.ssh_public_key != "" ? "admin:${var.ssh_public_key}" : null
   }

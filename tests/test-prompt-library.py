@@ -10,6 +10,8 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/validate-prompt-library.py"
 spec = importlib.util.spec_from_file_location("library", SCRIPT)
+assert spec is not None
+assert spec.loader is not None
 library = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(library)
 
