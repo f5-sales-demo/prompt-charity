@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import os
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -268,6 +269,10 @@ class IamTests(unittest.TestCase):
         )
         self.assertEqual(
             request["required_role"], "roles/iam.serviceAccountTokenCreator"
+        )
+        self.assertEqual(
+            shlex.split(request["administrator_command"]),
+            request["administrator_command_argv"],
         )
 
     def test_missing_compute_permissions_preserves_custom_role_request(self):

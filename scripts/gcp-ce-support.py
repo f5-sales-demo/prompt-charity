@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import time
 import urllib.error
@@ -377,6 +378,7 @@ def iam_team_request(result: dict) -> dict | None:
         "selection": dict(selection),
         "observations": failed,
         "administrator_command_argv": command,
+        "administrator_command": shlex.join(command) if command else None,
         "required_role": "roles/iam.serviceAccountTokenCreator" if command else None,
         "instruction": "Grant to the caller, not the service account itself. Preserve approved custom roles; investigate UNKNOWN evidence before any grant.",
         "recheck": "After administrator confirmation, rerun all five gates every 30 seconds for at most ten minutes. Timeout pauses; group changes may take longer.",
