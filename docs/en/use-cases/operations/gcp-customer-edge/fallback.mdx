@@ -6,6 +6,7 @@ description: A step-by-step Terraform recipe with the same planning, deployment 
 export const promptLibraryRole = 'fallback';
 
 import { Code } from '@astrojs/starlight/components';
+import CanonicalCopyData from '../../../../components/CanonicalCopyData.astro';
 import versions from '../../../../_data/gcp-customer-edge/versions.tf?raw';
 import providers from '../../../../_data/gcp-customer-edge/providers.tf?raw';
 import variables from '../../../../_data/gcp-customer-edge/variables.tf?raw';
@@ -105,6 +106,9 @@ receipts and propagation deadline. Never save credential values or full policies
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
 invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
+Use a private form-encoded POST to `https://oauth2.googleapis.com/tokeninfo`, and omit `x-goog-user-project` from public
+OAuth/OpenID identity requests. The quota header can make OpenID userinfo fail with 403 despite working impersonation;
+it belongs on GCP resource/API requests. Save initial pending gates and the original deadline before propagation polling.
 Save the five complete prerequisite rows, with evidence, caller, target, owner, action and observation time.
 Image-use uncertainty keeps the aggregate deployment-permissions gate unknown until the approved probe succeeds.
 Use `/register/namespaces/system/tokens` for JWT registration-token inventory and exact token absence checks.
@@ -328,7 +332,10 @@ directory. Only `ONLINE` returns success; timeout returns 2 and failures return 
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(support, 'utf8').toString('base64')}`} download="gcp-ce-support.py">Download IAM, checksum and polling helper (Python 3.11+)</a>
 
-<Code code={support} lang="python" title="gcp-ce-support.py" />
+<div id="gcp-customer-edge-canonical-helper">
+  <Code code={support} lang="python" title="gcp-ce-support.py" />
+</div>
+<CanonicalCopyData source={support} target="gcp-customer-edge-canonical-helper" />
 
 ```bash
 # Credentials must already be loaded privately; never print them.

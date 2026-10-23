@@ -4,6 +4,7 @@ description: Plan, approve, deploy and verify one dual-interface F5 Distributed 
 ---
 
 import { Code } from '@astrojs/starlight/components';
+import CanonicalCopyData from '../../../../components/CanonicalCopyData.astro';
 import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 
 ## Before you begin
@@ -41,7 +42,10 @@ Enable native planning mode in your chosen agent, then copy this entire block. R
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
 
-<Code code={prompt} lang="text" title="Complete customer prompt" />
+<div id="gcp-customer-edge-canonical-code">
+  <Code code={prompt} lang="text" title="Complete customer prompt" />
+</div>
+<CanonicalCopyData source={prompt} target="gcp-customer-edge-canonical-code" />
 
 ## Timing and completion
 
@@ -67,7 +71,7 @@ The earlier prompt completed three sequential fresh deployments on 2026-10-23. E
 received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
 before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
 
-Current canonical SHA256: `c6543ffaa48739a51661fbd32ba4f3fc71cab0e5c5b92605616e90818507ebaf`.
+Current canonical SHA256: `7e4d5ac4086fed6a77e9255ff42327f8b830032ebc37a431f7cca5174d679fb7`.
 
 Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
 

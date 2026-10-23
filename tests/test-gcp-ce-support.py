@@ -538,6 +538,46 @@ class IamTests(unittest.TestCase):
                 self.selection["quota_project"],
             )
 
+    def test_public_identity_request_omits_quota_header_and_keeps_token_in_body(self):
+        observer = self.adapter()
+        observer.request = lambda url, token, data=None: support.GcpIamObserver.request(
+            observer, url, token, data
+        )
+        requests = []
+
+        def urlopen(request, timeout):
+            requests.append(request)
+            if request.get_header("X-goog-user-project"):
+                raise support.urllib.error.HTTPError(
+                    request.full_url,
+                    403,
+                    "quota header rejected",
+                    {},
+                    io.BytesIO(b"{}"),
+                )
+            response = mock.MagicMock()
+            response.__enter__.return_value = response
+            response.status = 200
+            response.read.return_value = json.dumps(
+                {"email": self.selection["service_account"]}
+            ).encode()
+            return response
+
+        with mock.patch.object(support.urllib.request, "urlopen", side_effect=urlopen):
+            self.assertEqual(
+                support.GcpIamObserver.token_identity(observer, self.sentinel),
+                self.selection["service_account"],
+            )
+        request = requests[0]
+        self.assertEqual(request.full_url, "https://oauth2.googleapis.com/tokeninfo")
+        self.assertEqual(request.get_method(), "POST")
+        self.assertIsNone(request.get_header("X-goog-user-project"))
+        self.assertNotIn(self.sentinel, request.full_url)
+        self.assertEqual(
+            support.urllib.parse.parse_qs(request.data.decode())["access_token"],
+            [self.sentinel],
+        )
+
     def test_command_errors_never_print_credentials(self):
         with (
             mock.patch.object(

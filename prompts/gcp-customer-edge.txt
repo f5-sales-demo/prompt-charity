@@ -187,6 +187,14 @@ with permissions=["compute.images.useReadOnly"] using that identity for the exac
 resolved CE image; and the same project endpoint for serviceusage.services.use in the explicit quota project.
 Keep bearer tokens only in private process memory. Verify identities through an
 independent authenticated identity request, not the requested account name alone.
+Prefer POST https://oauth2.googleapis.com/tokeninfo with an application/x-www-form-urlencoded
+access_token body assembled inside the private process. Validate a non-empty
+email matching the expected caller/service account. Public OAuth/OpenID identity
+requests must omit x-goog-user-project; applying a GCP quota header to the OpenID
+userinfo endpoint can return 403 even when impersonation and token generation
+work. Keep the explicit quota header for GCP resource/API requests. A failed
+identity endpoint is UNKNOWN, not evidence that Token Creator is missing; inspect
+its HTTP status/shape instead of spending the propagation budget on a wrong request.
 Test short-lived impersonation with the IAM Credentials generateAccessToken
 endpoint with cloud-platform AND userinfo.email scopes so tokeninfo can verify
 the service-account email; privately validate accessToken/expireTime and use it for read-only
@@ -314,6 +322,10 @@ Copy the five complete prerequisite rows into the checkpoint, including status,
 reason/evidence, caller, target resource, owner, next action and observation time.
 PASS rows also retain a responsible team and recheck action; required metadata
 must not be replaced with dashes or omitted.
+Save the initial pending gate rows, selected identities, approvals and original
+confirmation deadline BEFORE starting propagation polling, then update that
+checkpoint with fresh observations. Do not wait until access succeeds to make
+the deadline durable.
 Image-use uncertainty keeps the aggregate deployment-permissions gate UNKNOWN;
 do not record that gate PASS while an auxiliary image check remains unresolved.
 Hash the entire exact canonical prompt, never its title, first paragraph or an

@@ -547,7 +547,7 @@ class GcpIamObserver:
             return ""
 
     def request(
-        self, url: str, token: str, data: dict | None = None
+        self, url: str, token: str, data: dict | bytes | None = None
     ) -> tuple[int | None, bytes]:
         """Use only fixed Google HTTPS API origins; never log requests or errors."""
         parsed = urllib.parse.urlsplit(url)
@@ -564,13 +564,17 @@ class GcpIamObserver:
             return None, b""
         headers = {
             "Authorization": "Bearer " + token,
-            "Content-Type": "application/json",
-            "X-Goog-User-Project": self.selection["quota_project"],
+            "Content-Type": "application/x-www-form-urlencoded"
+            if isinstance(data, bytes)
+            else "application/json",
         }
+        if parsed.hostname != "oauth2.googleapis.com":
+            headers["X-Goog-User-Project"] = self.selection["quota_project"]
+        body = json.dumps(data).encode() if isinstance(data, dict) else data
         request = urllib.request.Request(  # noqa: S310 - validated HTTPS Google API origin
             url,
             headers=headers,
-            data=None if data is None else json.dumps(data).encode(),
+            data=body,
         )
         try:
             with urllib.request.urlopen(request, timeout=25) as response:  # noqa: S310 - internal fixed HTTPS API URLs
@@ -584,9 +588,9 @@ class GcpIamObserver:
     def token_identity(self, token: str) -> str:
         """Independently verify email through Google's private token-info request."""
         status, body = self.request(
-            "https://oauth2.googleapis.com/tokeninfo?access_token="
-            + urllib.parse.quote(token, safe=""),
+            "https://oauth2.googleapis.com/tokeninfo",
             token,
+            urllib.parse.urlencode({"access_token": token}).encode(),
         )
         try:
             payload = json.loads(body)

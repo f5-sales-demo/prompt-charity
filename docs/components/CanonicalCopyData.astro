@@ -1,0 +1,21 @@
+---
+interface Props {
+  source: string;
+  target: string;
+}
+
+const { source: canonicalCopySource, target: canonicalCopyTarget } = Astro.props;
+---
+
+<script define:vars={{ canonicalCopySource, canonicalCopyTarget }}>
+  // Expressive Code trims outer blank lines for display. Copy the original
+  // artifact, including its final newline, using the copy plugin's separator.
+  (() => {
+    const button = document
+      .getElementById(canonicalCopyTarget)
+      ?.querySelector('button[data-code]');
+    if (button) {
+      button.setAttribute('data-code', canonicalCopySource.replaceAll('\n', '\x7f'));
+    }
+  })();
+</script>
