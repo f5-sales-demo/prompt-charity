@@ -186,6 +186,13 @@ class IamTests(unittest.TestCase):
                     return responses.get(
                         "caller_identity", selection["caller"].split(":", 1)[1]
                     )
+                if responses.get("require_email_scope") and not any(
+                    url.endswith(":generateAccessToken")
+                    and "https://www.googleapis.com/auth/userinfo.email"
+                    in body.get("scope", [])
+                    for url, _, body in requests
+                ):
+                    return ""
                 return selection["service_account"] if token else ""
 
             def request(self, url, token, data=None):
@@ -273,6 +280,13 @@ class IamTests(unittest.TestCase):
         self.assertEqual(
             shlex.split(request["administrator_command"]),
             request["administrator_command_argv"],
+        )
+
+    def test_impersonation_token_has_verifiable_email_identity(self):
+        # Cloud-only tokens can work for compute but omit email in tokeninfo.
+        self.responses["require_email_scope"] = True
+        self.assertTrue(
+            all(gate["status"] == "PASS" for gate in self.preflight()["gates"])
         )
 
     def test_missing_compute_permissions_preserves_custom_role_request(self):

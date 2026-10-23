@@ -22,6 +22,10 @@ from pathlib import Path
 CHECKSUM_COLUMNS = 2
 MAX_FAILURES = 3
 MAX_TIMEOUT = 3600
+IMPERSONATION_SCOPES = [
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/userinfo.email",
+]
 
 
 def newest_release(releases: list[dict]) -> dict:
@@ -594,7 +598,7 @@ class GcpIamObserver:
                 + ":generateAccessToken",
                 self.tokens["caller"],
                 {
-                    "scope": ["https://www.googleapis.com/auth/cloud-platform"],
+                    "scope": IMPERSONATION_SCOPES,
                     "lifetime": "600s",
                 },
             )
@@ -811,7 +815,7 @@ class GcpIamObserver:
                 + ":generateAccessToken",
                 adc,
                 {
-                    "scope": ["https://www.googleapis.com/auth/cloud-platform"],
+                    "scope": IMPERSONATION_SCOPES,
                     "lifetime": "600s",
                 },
             )
