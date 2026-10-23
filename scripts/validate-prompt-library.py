@@ -136,9 +136,10 @@ def validate(root: Path) -> list[str]:
         )
         supporting = bool(
             re.search(
-                r"(?:<!--|\{/\*) prompt-library: (fallback|reference) (?:-->|\*/\})",
+                r"export\s+const\s+promptLibraryRole\s*=\s*['\"](?:fallback|reference)['\"]",
                 text,
             )
+            or re.search(r"<!-- prompt-library: (fallback|reference) -->", text)
         )
         is_use_case = page.is_relative_to(catalog)
         landing = page.stem == "index" and page.parent in {catalog, *catalog.iterdir()}

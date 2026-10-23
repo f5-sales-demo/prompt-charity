@@ -3,7 +3,7 @@ title: GCP Customer Edge fallback guide
 description: A step-by-step Terraform recipe with the same planning, deployment and cleanup gates as the customer prompt.
 ---
 
-{/* prompt-library: fallback */}
+export const promptLibraryRole = 'fallback';
 
 import { Code } from '@astrojs/starlight/components';
 import versions from '../../../../_data/gcp-customer-edge/versions.tf?raw';
@@ -17,13 +17,23 @@ import instance from '../../../../_data/gcp-customer-edge/instance.tf?raw';
 import outputs from '../../../../_data/gcp-customer-edge/outputs.tf?raw';
 import support from '../../../../_data/gcp-customer-edge/gcp-ce-support.py?raw';
 
-This guide supports [the complete customer prompt](/prompt-charity/en/use-cases/operations/gcp-customer-edge/). It creates one Secure Mesh Site v2 with separate SLO and SLI VPCs, outbound SLO NAT and one `n2-standard-8` VM without a public IP. It excludes HA and workloads. The nine files below are a reviewed starting recipe; choose customer inputs and re-resolve current release/image identities before deployment.
+This guide supports [the complete customer prompt](/prompt-charity/en/use-cases/operations/gcp-customer-edge/). It
+creates one Secure Mesh Site v2 with separate SLO and SLI VPCs, outbound SLO NAT and one `n2-standard-8` VM without a
+public IP. It excludes HA and workloads. The nine files below are a reviewed starting recipe; choose customer inputs and
+re-resolve current release/image identities before deployment.
 
 ## 1. Discover and review before changing anything
 
-Obtain an invitation to the private [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) repository and authenticated release access. A private repository can return 404 when access is missing. Confirm the native platform has a release asset. `v0.9.7` currently has darwin amd64/arm64, linux amd64 and windows amd64 assets; Linux arm64 is unsupported in that release.
+Obtain an invitation to the private
+[F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) repository
+and authenticated release access. A private repository can return 404 when access is missing. Confirm the native
+platform has a release asset. `v0.9.7` currently has `darwin_amd64`, `darwin_arm64`, `linux_amd64` and `windows_amd64`
+assets; Linux arm64 is unsupported in that release.
 
-Check Terraform 1.5+, native archive/SHA256/HTTP/JSON tooling, GCP CLI identity, project API access, and Application Default Credentials separately. Do not print tokens. Inventory all subnets and secondary ranges, choose two non-overlapping private `/26` ranges, verify N2 vCPU quota and machine availability in the selected zone, and inspect effective firewall policy. Higher-level deny rules may override the VPC rules in this recipe.
+Check Terraform 1.5+, native archive/SHA256/HTTP/JSON tooling, GCP CLI identity, project API access, and Application
+Default Credentials separately. Do not print tokens. Inventory all subnets and secondary ranges, choose two
+non-overlapping private `/26` ranges, verify N2 vCPU quota and machine availability in the selected zone, and inspect
+effective firewall policy. Higher-level deny rules may override the VPC rules in this recipe.
 
 Compare images by name and creation time in `f5-7626-networks-public`; pin the selected `f5xc-ce-crt-*` full name and immutable ID. Inspect image licences read-only. Inspect existing Terraform state and exact owned GCP/XC resources to distinguish fresh, resumed and orphaned deployments. Do not adopt or delete unowned resources.
 
@@ -33,7 +43,9 @@ Present a scoped plan including exact provider version/asset/checksum, image, pr
 
 ## 2. Resolve and install the exact provider
 
-Enumerate all GitHub release pages, filter out drafts, include prereleases, and select the newest publication timestamp. Do not copy stale version constraints from the provider README or use a loose constraint. The following illustrates a POSIX shell with `gh`, `jq`, `python3`, and archive tooling; select appropriate native commands on your own host.
+Enumerate all GitHub release pages, filter out drafts, include prereleases, and select the newest publication timestamp.
+Do not copy stale version constraints from the provider README or use a loose constraint. The following illustrates a
+POSIX shell with `gh`, `jq`, `python3`, and archive tooling; select appropriate native commands on your own host.
 
 ```bash
 set -euo pipefail
@@ -60,19 +72,36 @@ unzip "$ZIP" -d extracted
 install -m 0755 "extracted/terraform-provider-f5xc_v$VERSION" "$DEST/"
 ```
 
-Reject missing/duplicate/malformed checksums and checksum mismatches before extraction or installation. Inspect archive members for unsafe paths. Handle platform-specific executable permissions/quarantine using native tools as needed. Pin `versions.tf` to `= <the exact resolved version>`; its current baseline below is `= 0.9.7`. If a new release differs, review its schema and revalidate before using it.
+Reject missing/duplicate/malformed checksums and checksum mismatches before extraction or installation. Inspect archive
+members for unsafe paths. Handle platform-specific executable permissions/quarantine using native tools as needed. Pin
+`versions.tf` to `= <the exact resolved version>`; its current baseline below is `= 0.9.7`. If a new release differs,
+review its schema and revalidate before using it.
 
 ## 3. Probe marketplace licence acceptance
 
-After approval, create a uniquely named temporary disk from the pinned image in the approved project/zone. A disk tests marketplace acceptance without relying on a default VPC. Record its exact identity, inspect its licence, delete only that owned probe and prove absence, including after failure. The image may require at least its source disk size (currently 69 GB). If terms are not accepted, the customer must accept them before deployment can proceed. Do not treat a failed probe as approval to alter marketplace policy.
+After approval, create a uniquely named temporary disk from the pinned image in the approved project/zone. A disk tests
+marketplace acceptance without relying on a default VPC. Record its exact identity, inspect its licence, delete only
+that owned probe and prove absence, including after failure. The image may require at least its source disk size
+(currently 69 GB). If terms are not accepted, the customer must accept them before deployment can proceed. Do not treat
+a failed probe as approval to alter marketplace policy.
 
 ## 4. Write the nine Terraform files
 
-Create a private task directory and private inputs. The defaults intentionally require explicit project, region, zone, CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state, saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
+Create a private task directory and private inputs. The defaults intentionally require explicit project, region, zone,
+CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
+saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
+`sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
 
-The cloud-init writes `/etc/vpm/user_data` as root with 0600 permissions. JWT `.content` is a string; `.id` is not the registration token. Interface order assigns `ens4` to SLO and `ens5` to SLI. Registration fills `node_list`; the site lifecycle exclusions prevent Terraform from stripping that reported configuration. These exclusions hide some drift, so independently verify the site via its API after registration.
+The cloud-init writes `/etc/vpm/user_data` as root with 0600 permissions. JWT `.content` is a string; `.id` is not the
+registration token. Interface order assigns `ens4` to SLO and `ens5` to SLI. Registration fills `node_list`; the site
+lifecycle exclusions prevent Terraform from stripping that reported configuration. These exclusions hide some drift, so
+independently verify the site via its API after registration.
 
-The firewall uses F5's current [Secure Mesh v2 CE reference](https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-ip-dom-ref), checked on 2026-10-22. Worldwide TCP and UDP ranges are separate: `159.60.191.0/24` is TCP only. UDP 500 and ESP are outside this single-site use case. The broad HTTPS rule supports CDN-backed software; effective organization policies and domain filtering still need discovery.
+The firewall uses F5's current [Secure Mesh v2 CE
+reference](https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-ip-dom-ref), checked on
+2026-10-22. Worldwide TCP and UDP ranges are separate: `159.60.191.0/24` is TCP only. UDP 500 and ESP are outside this
+single-site use case. The broad HTTPS rule supports CDN-backed software; effective organization policies and domain
+filtering still need discovery.
 
 ### versions.tf
 
@@ -143,13 +172,20 @@ ce_image       = "projects/f5-7626-networks-public/global/images/<approved-image
 
 ## 5. Validate and apply an inspected saved plan
 
-Load private credentials for each Terraform/API invocation without logging values. Run `terraform init -input=false`, `terraform fmt`, `terraform fmt -check`, `terraform validate` and `terraform providers schema -json`. Check attribute object syntax and required one-of choices against the selected provider. Create `terraform plan -input=false -out=tfplan`; inspect `terraform show tfplan` privately for the exact scope, NIC order, image, NAT dependency and firewall rules. The count is 15 resources by default or 16 with optional SSH; it includes `random_id` and XC objects.
+Load private credentials for each Terraform/API invocation without logging values. Run `terraform init -input=false`,
+`terraform fmt`, `terraform fmt -check`, `terraform validate` and `terraform providers schema -json`. Check attribute
+object syntax and required one-of choices against the selected provider. Create `terraform plan -input=false
+-out=tfplan`; inspect `terraform show tfplan` privately for the exact scope, NIC order, image, NAT dependency and
+firewall rules. The count is 15 resources by default or 16 with optional SSH; it includes `random_id` and XC objects.
 
 Apply only that inspected plan with `terraform apply -input=false tfplan`. If it changes unapproved resources, stop and revise the scoped plan. Record the VM creation time to anchor the original registration deadline.
 
 ## 6. Poll with visible elapsed time
 
-Allow roughly 30-50 minutes overall, normally 20-45 minutes for registration/upgrades. Cold provider downloads and init can take longer; teardown often takes several minutes. Announce each wait. Keep the session active and collect output through bounded tool waits. The poller prints every attempt at 30-second intervals and saves responses to a private directory. Only `ONLINE` returns success; timeout returns 2 and failures return 1.
+Allow roughly 30-50 minutes overall, normally 20-45 minutes for registration/upgrades. Cold provider downloads and init
+can take longer; teardown often takes several minutes. Announce each wait. Keep the session active and collect output
+through bounded tool waits. The poller prints every attempt at 30-second intervals and saves responses to a private
+directory. Only `ONLINE` returns success; timeout returns 2 and failures return 1.
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(support, 'utf8').toString('base64')}`} download="gcp-ce-support.py">Download checksum and polling helper (Python 3.11+)</a>
 
@@ -161,7 +197,10 @@ SITE=$(terraform output -raw site_name)
 python3 gcp-ce-support.py poll "$SITE" --evidence-dir /path/to/private/poll-evidence --timeout-seconds 3600
 ```
 
-Pass only the remaining original budget if polling starts after VM creation or a command restarts. Do not restart the 60-minute deadline. A state can oscillate between provisioning and upgrading; that is pending. Transport/HTTP errors, invalid JSON and unknown states are distinct failures. Authentication errors stop immediately; three repeated invalid/transport/HTTP responses stop for diagnostics. No timeout is success.
+Pass only the remaining original budget if polling starts after VM creation or a command restarts. Do not restart the
+60-minute deadline. A state can oscillate between provisioning and upgrading; that is pending. Transport/HTTP errors,
+invalid JSON and unknown states are distinct failures. Authentication errors stop immediately; three repeated
+invalid/transport/HTTP responses stop for diagnostics. No timeout is success.
 
 After the 60-minute budget, preserve evidence and perform at most ten minutes of read-only checks: owned VM and serial logs, NAT mappings, effective firewall rules, site/node responses and JWT age. Do not print serial logs or metadata publicly.
 
@@ -175,10 +214,20 @@ Record Regional Edge identities and `connected_re` separately, validating respon
 
 ## 8. Review recovery before mutating
 
-If JWT registration fails or expires, inspect state ownership and token validity privately. **Do not automatically taint, rotate a token, reset or replace the VM.** The VM ignores user-data changes: replacing the token alone leaves metadata stale, and resetting can boot stale data again. Present a recovery plan explaining exact token/metadata/replacement effects and obtain approval for those changes. Preserve the failed attempt and retest the changed candidate.
+If JWT registration fails or expires, inspect state ownership and token validity privately. **Do not automatically
+taint, rotate a token, reset or replace the VM.** The VM ignores user-data changes: replacing the token alone leaves
+metadata stale, and resetting can boot stale data again. Present a recovery plan explaining exact
+token/metadata/replacement effects and obtain approval for those changes. Preserve the failed attempt and retest the
+changed candidate.
 
 ## 9. Destroy and independently verify absence
 
-When teardown is authorized, create `terraform plan -destroy -input=false -out=destroy.tfplan`, inspect it for only state-owned resources, and apply that saved plan. Prove the state is empty. Independently query each exact owned instance, boot disk, VPC, subnet, router/NAT, firewall rule and licence probe, and both XC site representations plus token.
+When teardown is authorized, create `terraform plan -destroy -input=false -out=destroy.tfplan`, inspect it for only
+state-owned resources, and apply that saved plan. Prove the state is empty. Independently query each exact owned
+instance, boot disk, VPC, subnet, router/NAT, firewall rule and licence probe, and both XC site representations plus
+token.
 
-Use validated exact-object absence responses or validated lists without the exact object. A transport error, malformed body or empty unchecked output is not cleanup evidence. Bound XC deletion checks and retain failed cleanup evidence. Do not delete by broad prefixes or remove unrelated resources. Cleanup remains incomplete until the owned GCP resources and XC site are independently absent.
+Use validated exact-object absence responses or validated lists without the exact object. A transport error, malformed
+body or empty unchecked output is not cleanup evidence. Bound XC deletion checks and retain failed cleanup evidence. Do
+not delete by broad prefixes or remove unrelated resources. Cleanup remains incomplete until the owned GCP resources and
+XC site are independently absent.

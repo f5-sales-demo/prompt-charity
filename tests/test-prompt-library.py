@@ -40,7 +40,7 @@ class LibraryTests(unittest.TestCase):
 
     def test_complete_prompt_and_fallback_are_distinct(self):
         (self.page.parent / "fallback.mdx").write_text(
-            "{/* prompt-library: fallback */}\nReference HCL"
+            "export const promptLibraryRole = 'fallback';\nReference HCL"
         )
         self.assertEqual(library.validate(self.root), [])
 

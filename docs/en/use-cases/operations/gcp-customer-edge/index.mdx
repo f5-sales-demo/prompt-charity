@@ -10,13 +10,19 @@ import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 
 Use an existing authorized test GCP project and F5 Distributed Cloud tenant with permission to create and delete a site. You need GCP CLI authentication and separate Terraform Application Default Credentials, sufficient N2 quota, and Terraform 1.5 or newer. Your agent discovers the host and chooses appropriate native commands.
 
-**Private provider access comes first:** obtain an invitation to [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the newest non-draft release, including prereleases, and rejects unsupported platform assets. The release checked on 2026-10-22 is `v0.9.7`.
+**Private provider access comes first:** obtain an invitation to
+[F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and
+authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the
+newest non-draft release, including prereleases, and rejects unsupported platform assets. The release checked on
+2026-10-22 is `v0.9.7`.
 
 ## Expected architecture
 
 One `n2-standard-8` instance has separate SLO (outside) and SLI (inside) VPCs/subnets. SLO Cloud NAT supplies outbound access; the VM has no public IP. Secure Mesh Site v2 uses JWT registration. NIC order is explicit: `ens4 → SLO`, `ens5 → SLI`. The default saved Terraform plan creates 15 resources, or 16 with optional SSH.
 
-Supply your project, region/zone, unique short name prefix, two independently checked non-overlapping private `/26` ranges, authorized tenant API URL and private credential source. SSH defaults to none. Credentials must stay outside chat, published configuration and the Terraform input directory. State, saved plans and VM metadata must remain private.
+Supply your project, region/zone, unique short name prefix, two independently checked non-overlapping private `/26`
+ranges, authorized tenant API URL and private credential source. SSH defaults to none. Credentials must stay outside
+chat, published configuration and the Terraform input directory. State, saved plans and VM metadata must remain private.
 
 ## Copy the complete prompt
 
