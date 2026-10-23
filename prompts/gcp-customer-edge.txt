@@ -25,6 +25,7 @@ SLI subnet: [Different non-overlapping private /26 CIDR, or request a checked pr
 F5 Distributed Cloud tenant: [Authorized tenant API URL ending in /api]
 XC credential source: [Private credential file or inherited environment; never paste secrets]
 SSH: [None by default; optional public key and narrowly scoped source CIDRs]
+CE boot disk: [120 GB pd-balanced default; increase for current image or workload requirements]
 Prompt provenance: [Exact canonical prompt file/attachment or independently supplied full SHA256 for checkpointing]
 
 Exclude HA, workload VMs, load balancers, origin pools, Windows VM provisioning,
@@ -93,6 +94,19 @@ a probe after plan approval; report it as unverified during planning.
 Inventory all project subnets including secondary ranges; check proposed SLO/SLI
 ranges against them and each other. Confirm n2-standard-8 availability in the
 chosen zone and at least eight free regional N2 vCPUs plus disk/network quotas.
+Plan operating capacity, not just image bootability. Recheck F5's current Mesh
+requirements at https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-site-size-ref
+and its GCP deployment guide. The documented Mesh baseline is 80 GB minimum;
+this prompt defaults to 120 GB to reserve 50% above that minimum for software,
+logs and upgrades. This is an engineering headroom policy, not a claim that F5
+recommends 120 GB. Use at least max(120, ceil(1.5 * max(current F5 minimum,
+image diskSizeGb) / 10) * 10) GB, increasing further for measured workload needs.
+Verify pd-balanced support, selected-region storage quota and current pricing;
+Persistent Disk capacity is independent of the n2-standard-8 machine flavor.
+In us-east4, the catalog checked on 2026-10-23 lists zonal Balanced PD at
+USD 0.11/GiB-month: 120 costs about 13.20/month, 4.40 more than 80, excluding
+snapshots/taxes. Recheck for the actual region; never downsize to the image
+minimum merely to save that small difference.
 Check effective firewall policies: these VPC rules cannot override higher-level
 deny policies. In a fresh deployment, the new VPCs do not exist yet. Unavailable
 organization/folder policy inspection stays UNKNOWN with evidence; do not demand
@@ -123,6 +137,10 @@ image name and immutable identity. There is no CE image family. Inspect its
 licences read-only. A disk licence probe creates a resource and belongs only in
 the approved implementation plan. Check XC access with validated read-only
 responses; HTTP 200 alone does not establish a valid site or coverage.
+JWT registration-token inventory uses /register/namespaces/system/tokens, and
+exact token reads/deletion checks use that route plus the state-owned token name
+or ID. /config/namespaces/system/tokens is not this token route; its 404 does not
+prove token absence. Validate the actual register response and exact ownership.
 
 Ask only for missing inputs or material unresolved decisions. Give checked
 recommendations; do not ask again for values already supplied. Never request
@@ -292,6 +310,12 @@ gate observations, outstanding administrator requests, scoped approvals,
 installation receipts and the original propagation deadline. Store no token, key
 contents, complete IAM policy, credential-bearing response or raw transcript in
 it. Raw failures belong only in separate private evidence with secret handling.
+Copy the five complete prerequisite rows into the checkpoint, including status,
+reason/evidence, caller, target resource, owner, next action and observation time.
+PASS rows also retain a responsible team and recheck action; required metadata
+must not be replaced with dashes or omitted.
+Image-use uncertainty keeps the aggregate deployment-permissions gate UNKNOWN;
+do not record that gate PASS while an auxiliary image check remains unresolved.
 Hash the entire exact canonical prompt, never its title, first paragraph or an
 excerpt. Use the supplied exact file/attachment bytes or independently verified
 full hash. If provenance is missing, record hash UNKNOWN and resolve it before
@@ -331,19 +355,24 @@ EXACT version. Record other resolved provider versions in the lockfile.
 
 Create a uniquely named temporary disk from the pinned image in the selected
 project/zone to verify image-use capability and marketplace licence acceptance.
+The probe disk must be at least the pinned image's diskSizeGb; omit an explicit
+size to use GCP's image minimum, or choose the approved CE boot-disk size. This
+immediately deleted probe is not the operating CE disk and needs no upgrade reserve.
 Use this scoped phase to resolve the readable-public-image permission-test
 discrepancy when recorded in the approved plan. Record its ownership and
 prove deletion even after a failed probe. Never delete an unrelated probe disk.
 A failed marketplace acceptance prerequisite requires the customer's acceptance
 of the terms before continuing.
 
-When prospective policy evidence was UNKNOWN, first create only the four owned
-network/subnet resources using an inspected saved plan, then validate effective
+When prospective policy evidence was UNKNOWN, first create only random_id and
+the four owned network/subnet resources (five resources total, including their
+naming dependency) using an inspected saved plan, then validate effective
 firewalls on those exact VPCs. Stop on a concrete incompatible inherited rule.
-Inspect the subsequent saved plan for the remaining eleven resources and apply
+Inspect the subsequent saved plan for the remaining ten resources and apply
 only it. Both plans together must match the approved fifteen-resource scope;
 never use unreviewed targets or recompute a plan at apply time. Record each
-saved-plan digest and the actual executor/identity. If policy evidence was
+saved-plan digest and the actual executor/identity. Optional SSH adds one resource
+to the second plan, for sixteen total. If policy evidence was
 already sufficient, use the single complete saved plan instead.
 
 Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
@@ -414,8 +443,15 @@ for validity, resume and recovery decisions; lifetime can vary with server polic
 Cloud-init writes only token: <JWT> in /etc/vpm/user_data, owned by root with 0600
 permissions. Do not use SMSv1 /etc/vpm/config.yaml, Vpm/Kubernetes nesting,
 certified_hardware or a registration_approval resource.
+Include read-only startup disk diagnostics (df and lsblk, where supported) in
+the existing cloud-init, reporting disk/partition/filesystem size and free space
+for / and persistent data/log paths such as /var, /var/lib and /var/log,
+to serial output without printing credentials or /etc/vpm/user_data. Do not
+modify partitions or filesystems with guessed commands. Check the image's
+supported root-filesystem expansion rather than assuming a larger GCP disk
+automatically becomes usable guest capacity.
 
-Create one n2-standard-8 VM, can_ip_forward=true, 80 GB pd-balanced boot disk,
+Create one n2-standard-8 VM, can_ip_forward=true, 120 GB pd-balanced boot disk,
 pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
 has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
 so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
@@ -467,6 +503,11 @@ Completion requires evidence for ALL three gates:
 
 Record connected_re separately from registration; validate its response shape and
 report observed RE identities/count without equating ONLINE with connectivity.
+Independently verify the actual boot disk has the approved capacity/type and
+inspect supported node telemetry or the startup serial diagnostics for usable
+filesystem size and free space. Report provisioned and guest-usable capacity
+separately; diskSizeGb alone does not prove upgrade headroom. Missing guest
+evidence stays UNKNOWN and must not be described as a successful upgrade test.
 Empty sli_address is not a reliable SLI check; inspect node_list instead.
 Summarize met/unmet gates, timestamps, immutable provider/image identities, total
 elapsed time, cost of keeping the VM and owned teardown instructions.

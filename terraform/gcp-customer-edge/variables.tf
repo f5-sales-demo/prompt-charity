@@ -48,9 +48,14 @@ variable "machine_type" {
 }
 
 variable "boot_disk_size_gb" {
-  description = "CE boot disk size in GB. F5 documents 80 GB minimum (the image itself is 69 GB)."
+  description = "CE boot disk size in GB. Default 120 reserves 50% above F5's 80 GB minimum; increase for newer image or sizing requirements."
   type        = number
-  default     = 80
+  default     = 120
+
+  validation {
+    condition     = var.boot_disk_size_gb >= 120 && var.boot_disk_size_gb == floor(var.boot_disk_size_gb)
+    error_message = "Use a whole-number boot disk size of at least 120 GB to preserve operating and upgrade headroom."
+  }
 }
 
 variable "boot_disk_type" {

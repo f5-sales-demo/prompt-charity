@@ -354,6 +354,7 @@ def iam_preflight(
             }
         )
         if gate == "deployment_permissions" and "licence probe" in reason:
+            gates[-1]["owner"] = "operator"
             gates[-1]["next_action"] = (
                 "review a scoped image/licence probe; do not infer an IAM grant"
             )
@@ -388,7 +389,11 @@ def iam_team_request(result: dict) -> dict | None:
         "administrator_command_argv": command,
         "administrator_command": shlex.join(command) if command else None,
         "required_role": "roles/iam.serviceAccountTokenCreator" if command else None,
-        "instruction": "Grant to the caller, not the service account itself. Preserve approved custom roles; investigate UNKNOWN evidence before any grant.",
+        "instruction": (
+            "Grant to the caller, not the service account itself. Preserve approved custom roles; investigate UNKNOWN evidence before any grant."
+            if command
+            else "Preserve approved custom roles; investigate the specific observations without assuming an IAM grant. Resolve readable-image uncertainty only through a separately reviewed implementation phase."
+        ),
         "recheck": "After administrator confirmation, rerun all five gates every 30 seconds for at most ten minutes. Timeout pauses; group changes may take longer.",
     }
 

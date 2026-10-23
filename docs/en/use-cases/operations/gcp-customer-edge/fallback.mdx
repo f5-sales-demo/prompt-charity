@@ -87,13 +87,16 @@ discrepancy `UNKNOWN`; metadata access proves reading, not image use. When the c
 permissions, APIs and CLI/ADC checks pass, include a scoped image/licence probe in the reviewed implementation plan.
 Successful creation from the exact pinned image as the selected identity proves that capability; independently verify
 probe deletion before proceeding. Never create a probe during planning or invent an IAM grant for the image publisher.
+Size the probe at least as large as the pinned image's `diskSizeGb`; omit the explicit size for GCP's image minimum or
+use the approved CE boot-disk size. The immediately deleted probe does not need an upgrade reserve.
 The helper's propagation protocol returns `REVIEW_REQUIRED` for this remaining image uncertainty, preserving all gates
 without restarting IAM polling or authorizing deployment.
 
 Unavailable organization/folder policy inspection remains `UNKNOWN`; it does not establish a deny or require broad
 organization permissions. For new VPCs, include a phased approved plan: inspect and apply a saved plan for only the two
-networks and two subnets, check effective firewalls on those exact owned networks, then inspect and apply a saved plan
-for the remaining eleven resources. The combined scope stays fifteen resources. Stop on an incompatible inherited
+networks and two subnets plus their `random_id` naming dependency (five resources), check effective firewalls on those
+exact owned networks, then inspect and apply a saved plan for the remaining ten resources. The combined scope stays
+fifteen resources; optional SSH adds one to the second plan. Stop on an incompatible inherited
 rule. Do not bypass policies or use an unreviewed target/recomputed plan.
 
 After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
@@ -102,6 +105,10 @@ receipts and propagation deadline. Never save credential values or full policies
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
 invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
+Save the five complete prerequisite rows, with evidence, caller, target, owner, action and observation time.
+Image-use uncertainty keeps the aggregate deployment-permissions gate unknown until the approved probe succeeds.
+Use `/register/namespaces/system/tokens` for JWT registration-token inventory and exact token absence checks.
+A 404 from `/config/namespaces/system/tokens` does not establish absence of registration tokens.
 
 Use the full exact canonical prompt hash from its file/attachment or an independently supplied hash. An excerpt hash
 cannot identify the prompt. Record missing provenance as unknown until resolved. Verify the actual terminal shell and
@@ -206,6 +213,23 @@ saved plans, VM metadata and raw logs may carry secrets and must remain private.
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
 
 The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
+
+The operating CE uses a **120 GB `pd-balanced` boot disk by default**, rather than the source image minimum.
+[F5's sizing reference](https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-site-size-ref)
+documents 80 GB minimum for Mesh nodes; 120 GB is this recipe's policy to reserve 50% more capacity for software,
+logs and upgrades. It is not an F5 recommendation for exactly 120 GB. During planning, use at least
+`max(120, ceil(1.5 * max(current F5 minimum, image diskSizeGb) / 10) * 10)` GB and increase for measured workload needs.
+Verify the selected zone, storage quota and current rate. Persistent Disk size is independent of the N2 machine flavor;
+[Google's capacity guidance](https://cloud.google.com/compute/docs/disks/resize-persistent-disk) supports 120 GB.
+The `us-east4` zonal Balanced PD catalog rate checked on 2026-10-23 is $0.11/GiB-month: about $13.20/month for 120 GB,
+$4.40/month more than 80 GB, excluding snapshots and taxes. Recheck regional pricing during planning.
+
+The cloud-init includes read-only `df`/`lsblk` diagnostics between `CE_DISK_DIAGNOSTICS_BEGIN/END` serial markers.
+After registration, independently check the actual GCP disk capacity/type and supported guest telemetry or these
+diagnostics. Record provisioned size, usable filesystem size and free space separately. A larger block disk does not
+prove filesystem expansion or a successful future upgrade; missing guest evidence stays unknown. Do not guess partition
+or filesystem resize commands. Use [Google's resize guidance](https://cloud.google.com/compute/docs/disks/resize-persistent-disk)
+and the CE image's supported expansion procedure when needed.
 
 The cloud-init writes `/etc/vpm/user_data` as root with 0600 permissions. JWT `.content` is a string; `.id` is not the
 registration token. Interface order assigns `ens4` to SLO and `ens5` to SLI. Registration fills `node_list`; the site

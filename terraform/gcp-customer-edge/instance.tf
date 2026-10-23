@@ -11,6 +11,14 @@ locals {
         owner: root
         content: |
           token: ${sensitive(f5xc_token.ce.content)}
+    runcmd:
+      - |
+        {
+          printf 'CE_DISK_DIAGNOSTICS_BEGIN\n'
+          df -Pk / /var /var/lib /var/log
+          lsblk -b -o NAME,SIZE,TYPE,MOUNTPOINT
+          printf 'CE_DISK_DIAGNOSTICS_END\n'
+        } > /dev/console 2>&1
   EOT
 }
 
