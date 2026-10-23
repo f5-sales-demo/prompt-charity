@@ -35,6 +35,48 @@ Default Credentials separately. Do not print tokens. Inventory all subnets and s
 non-overlapping private `/26` ranges, verify N2 vCPU quota and machine availability in the selected zone, and inspect
 effective firewall policy. Higher-level deny rules may override the VPC rules in this recipe.
 
+### Optional GCP service account
+
+The complete copyable prompt already includes this choice and its setup instructions. For the fallback, prefer
+service-account impersonation. The caller needs `roles/iam.serviceAccountTokenCreator` on the service account, while
+the service account needs separate deployment permissions in the target project. `roles/compute.admin` is a broad
+starting role for customer-administrator review; an approved custom role may narrow it. Token Creator does not grant
+compute access. `roles/iam.serviceAccountUser` is only needed when attaching an identity to a VM; this recipe does not
+require a VM service account. Check Compute Engine and IAM Service Account Credentials API availability and any
+quota-project `serviceusage.services.use` requirement. Missing IAM/API prerequisites belong to the customer administrator;
+do not create keys, grant roles or enable APIs as part of this deployment.
+
+Inspect existing credentials during read-only planning. Login, ADC-file creation and local authentication changes
+require explicit setup approval, followed by discovery as the selected identity and review of the deployment plan.
+For approved setup, the following native CLI commands create impersonated ADC on the machine running Terraform:
+
+```bash
+gcloud auth login
+gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT_EMAIL
+```
+
+The published Google provider uses this ADC automatically. Use `--impersonate-service-account=SERVICE_ACCOUNT_EMAIL`
+and `--project=TARGET_PROJECT_ID` on every supporting GCP CLI command, including licence probes and independent cleanup
+verification. Do not silently fall back to the user's compute permissions. Existing primary-user ADC with the provider's
+`impersonate_service_account` or `GOOGLE_IMPERSONATE_SERVICE_ACCOUNT` is an alternative; do not combine that with already
+impersonated ADC. Resolve conflicting explicit credentials and `GOOGLE_APPLICATION_CREDENTIALS` in the approved task
+environment without changing unrelated CLI profiles.
+
+If the organization requires an existing JSON key, privately set `GOOGLE_APPLICATION_CREDENTIALS` to its path outside
+the Terraform directory. After setup approval, configure the task CLI for that same account with
+`gcloud auth activate-service-account SERVICE_ACCOUNT_EMAIL --key-file=PRIVATE_KEY_PATH --project=TARGET_PROJECT_ID`.
+Never create/download a key for this recipe, print its contents, or put it in HCL/tfvars. Protect key files and local
+credential stores. Verify CLI and ADC independently using authenticated read-only requests without displaying tokens.
+Customer-owned service accounts, IAM bindings and credentials survive CE teardown.
+
+GCP authentication is separate from private GitHub release access and the XC token. A private `.env` can supply
+`F5XCProvider_URL` and `F5XCProvider_API_TOKEN`, but Terraform does not automatically load `.env` files. Load only the
+required named values privately for each command. See Google's
+[Terraform authentication instructions](https://docs.cloud.google.com/docs/terraform/authentication) and
+[service-account roles](https://docs.cloud.google.com/iam/docs/service-account-permissions).
+
+### Continue discovery
+
 Compare images by name and creation time in `f5-7626-networks-public`; pin the selected `f5xc-ce-crt-*` full name and immutable ID. Inspect image licences read-only. Inspect existing Terraform state and exact owned GCP/XC resources to distinguish fresh, resumed and orphaned deployments. Do not adopt or delete unowned resources.
 
 Keep XC credentials in an inherited environment or a private credential file outside the Terraform directory. Verify
