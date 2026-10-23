@@ -41,7 +41,9 @@ Use the [complete prompt's IAM preflight](/prompt-charity/en/use-cases/operation
 Identify the caller, Terraform identity, service-account owning project, deployment project, quota project and credential
 method. Return five gates: identity selection, impersonation access, deployment permissions, APIs/quota project and
 CLI/ADC authentication. Each reports `PASS`, `BLOCKED` or `UNKNOWN`, evidence, observation time, owner and next action.
-Planning returns the table and one private IAM-team request in chat; it creates no files, including `plan.md`.
+Planning returns the table and one private IAM-team request in chat; it creates no files, including `plan.md` or
+temporary HTTP responses. Keep tokens in one process using an HTTP library; never expand them into command arguments
+such as `curl` headers or token query URLs. File readers must not return credential bytes into the conversation.
 
 Test effective permissions on the exact resource as the identity being checked. The caller needs
 `iam.serviceAccounts.getAccessToken` on the requested service account. A Token Creator grant to the service account

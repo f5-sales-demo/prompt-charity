@@ -45,6 +45,20 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
+During planning, create no temporary scripts, HTTP response files, diagnostic
+files or output redirections, inside or outside the workspace. Perform checks
+and parse responses in memory. A file-reader or search tool that returns
+credential bytes is disclosure, even if you never quote those bytes afterward.
+If the available planning tools cannot make authenticated requests privately,
+report the affected gates as UNKNOWN and pause rather than reading credentials
+into the conversation or inferring a grant from incomplete evidence.
+
+Access tokens and API keys must never appear in process command arguments.
+This includes curl -H headers, query URLs, --data-urlencode, and shell-variable
+expansion into command arguments. Capture generated tokens privately and issue
+HTTP requests inside the same process, using an HTTP library with authorization
+held in memory. Disable tracing and return only selected non-secret metadata.
+Do not use curl output files or shell pipelines to verify token identity.
 
 Verify the active GCP identity and project, API access, and Terraform Application
 Default Credentials independently of CLI login. Do not print access tokens.
