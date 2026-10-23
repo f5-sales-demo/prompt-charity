@@ -60,6 +60,10 @@ administration separate from local setup and deployment approval. After administ
 evidence; it does not prove the grant is wrong. Group membership changes may take longer.
 
 The helper's optional `iam-preflight` command emits JSON with the same five gates without saving files or changing IAM.
+When requested impersonation is blocked or unknown, hold all Compute Engine discovery, including public-image reads,
+quotas and network inventories. Do not substitute the human caller even when results are labelled as caller evidence.
+Caller identity/IAM/API checks and separate provider/XC discovery may continue; return the blocker promptly and resume
+Compute Engine checks as the service account only after the operator grant and fresh access verification.
 Run it only when the helper is already available or its download was separately approved; the prompt is self-contained.
 Use the actual selected values, keeping output private:
 

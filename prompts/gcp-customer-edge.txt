@@ -74,6 +74,15 @@ Default Credentials independently of CLI login. Do not print access tokens.
 Use the selected GCP identity for Terraform and every GCP discovery, licence-probe,
 deployment and cleanup-verification command. Never silently fall back to the
 user's own compute permissions when a service account was requested.
+If requested service-account impersonation is BLOCKED or UNKNOWN, do not run
+Compute Engine discovery as the human caller, even when labelled "caller
+evidence". This includes public-image/licence reads, subnets/routes, quotas,
+machine types and firewall inventories. Keep those checks pending until access
+is freshly verified. The caller may check its own identity and authentication,
+the requested service account's IAM access, Resource Manager project identity,
+and API enablement; private provider-release and XC discovery may continue.
+Return the blocked table and IAM-team request promptly, without trying another
+GCP identity. After the separate administrator grant, resume SA-scoped discovery.
 During planning, use only read-only list/get/describe/help operations, permission
 tests and short-lived authentication requests. These tests may use HTTP POST;
 they must never change IAM, APIs, resources or local authentication configuration. Never execute create,
