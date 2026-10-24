@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "prompt_sha256": "55c6826d0f68e2249f2268a75a7a6a5723a83d81c5b3655f29ba0e3d382ea977",
+  "run": "final-hash clean-room 2",
+  "harness": {
+    "name": "VS Code GitHub Copilot Chat",
+    "vscode_version": "1.143.1",
+    "extension_version": "0.71.0",
+    "os": "macOS 26.7.1",
+    "platform": "darwin_arm64",
+    "model": "claude-opus-5-5",
+    "model_picker_label": "Claude Opus 5.5",
+    "native_harness": "Local extension host",
+    "native_planning_mode": true,
+    "same_session_implementation": true,
+    "private_profile": true,
+    "permissions": "Allow all",
+    "planning_memory_and_delegation_disabled": true
+  },
+  "location": {
+    "region": "us-east4",
+    "zone": "us-east4-a"
+  },
+  "planning": {
+    "empty_start_directory": true,
+    "no_deliberate_workspace_or_memory_plan_artifacts": true,
+    "missing_impersonation_detected": true,
+    "private_iam_team_request_produced": true,
+    "iam_change_performed_by_separate_operator": true,
+    "checkpoint_saved_before_first_propagation_poll": true,
+    "original_confirmation_deadline_preserved": true,
+    "fresh_permission_token_identity_checks": true,
+    "independent_cidr_nonoverlap_checked": true
+  },
+  "provider": {
+    "version": "0.9.7",
+    "release_tag": "v0.9.7",
+    "prerelease": true,
+    "release_id": 412359117,
+    "asset_id": 639311100,
+    "asset": "terraform-provider-f5xc_0.9.7_darwin_arm64.zip",
+    "sha256": "010b7d729df3afff42dcf7448253af3b297967c63df0249b4fdc08f7cdc1e679",
+    "latest_catalog_discovered_each_run": true,
+    "verified_before_extraction": true,
+    "private_mirror": true,
+    "google_version": "7.46.2",
+    "random_version": "3.9.1"
+  },
+  "image": {
+    "name": "f5xc-ce-crt-20260801-0205-byol",
+    "immutable_id": "1689146860273445475"
+  },
+  "workspace": {
+    "terraform_files": "terraform/",
+    "saved_plans": "terraform/plans/",
+    "documentation": "docs/terraform.md",
+    "terraform_docs_version": "0.24.0",
+    "installed_tool_reused_without_docs_question": true,
+    "docs_contain_no_credentials": true
+  },
+  "deployment": {
+    "resource_count": 15,
+    "phased_saved_plans": [5, 10],
+    "saved_plan_digests": [
+      "b4b3a0c2e20b5433623a0164420895505f266317c79aa28a8e8dfb1e17fb8b2d",
+      "616ef59c199caa608f6f461bcc2796ad29241539da6488a1eb2b7704a0410cd5",
+      "44b9944f2786c93cf6f7b8e0d93b7b408fdb9be93100c17bc6106b3a33b6b5be"
+    ],
+    "no_public_ip": true,
+    "no_vm_service_account": true,
+    "project_ssh_keys_blocked": true,
+    "vm_created_at": "2026-10-24T04:14:53.845000+00:00"
+  },
+  "gates": {
+    "online": true,
+    "consecutive_online_observations": ["2026-10-24T04:38:36Z", "2026-10-24T04:39:07Z"],
+    "original_registration_deadline": "2026-10-24T05:14:53+00:00",
+    "ens4_slo_primary": true,
+    "ens5_sli_nonprimary": true,
+    "independent_vm_nic_mac_match": true,
+    "post_registration_detailed_exit_code": 0,
+    "independent_detailed_exit_code": 0,
+    "online_rechecked_after_zero_plan": true
+  },
+  "disk": {
+    "provisioned_gb": 120,
+    "type": "pd-balanced",
+    "startup_filesystem_gib": 119,
+    "startup_used_gib": 29,
+    "startup_available_gib": 91,
+    "current_post_upgrade_available_space": "UNKNOWN",
+    "future_upgrade_test_performed": false
+  },
+  "regional_edges": {
+    "recorded_separately": true,
+    "names": ["ny8-nyc", "dc12-ash"]
+  },
+  "teardown": {
+    "saved_destroy_plan_sha256": "44b9944f2786c93cf6f7b8e0d93b7b408fdb9be93100c17bc6106b3a33b6b5be",
+    "managed_deletes": 15,
+    "state_empty": true,
+    "independent_exact_absence_checks": 17,
+    "all_absence_response_shapes_validated": true,
+    "gcp_and_xc_absent": true,
+    "checked_at": "2026-10-24T04:44:48.325707+00:00"
+  },
+  "observed_failures": [
+    {
+      "phase": "licence-probe deletion verification",
+      "reason": "initial absence parser did not recognize the valid Google error shape",
+      "recovery": "agent rechecked the structured notFound response and an empty filtered list; independent absence check passed"
+    },
+    {
+      "phase": "saved plan preparation",
+      "reason": "workspace plans directory was missing and module permissions needed restoration",
+      "recovery": "agent recreated terraform/plans and restored owner-only permissions before saving or applying plans; private parent directories restricted access throughout"
+    },
+    {
+      "phase": "cost discovery",
+      "reason": "billing catalog query returned no NAT price",
+      "recovery": "NAT price remained UNKNOWN and was disclosed before scoped deployment approval"
+    }
+  ],
+  "evidence": {
+    "raw_transcripts_screenshots_states_and_iam_details": "private",
+    "native_session_export_supported_and_captured": true,
+    "native_export_sha256": "018b3eb53e2fdbf328eabf3660945ccb982f9f3ddf01bd45cd6484448e4edb71",
+    "credential_scan": {
+      "files_checked": 5,
+      "known_credential_values_checked": 3,
+      "credential_value_matches": 0,
+      "credential_pattern_matches": 0
+    },
+    "full_initial_input_fidelity": true,
+    "native_modes": ["Plan", "Plan", "agent", "agent", "agent", "agent"],
+    "native_request_count": 6
+  },
+  "iam_fixture_cleanup": {
+    "observed_at": "2026-10-24T04:50:04.115609+00:00",
+    "after_both_final_hash_runs": true,
+    "caller_token_creator_binding_absent": true,
+    "temporary_project_grants_absent": true,
+    "temporary_project_roles_removed": [
+      "roles/compute.admin",
+      "roles/serviceusage.serviceUsageConsumer",
+      "roles/orgpolicy.policyViewer"
+    ],
+    "service_account_absent": true,
+    "absence_response_shape_validated": true
+  }
+}
