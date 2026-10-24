@@ -24,7 +24,7 @@ resource "f5xc_securemesh_site_v2" "ce" {
     }
   }
 
-  # Provider 0.9.7 documents this choice as "Enable all Node Local Services".
+  # Verify "Enable all Node Local Services" against the selected latest release.
   # Disclose that policy during planning; the field name does not mean disabled.
   # Confirm selected-release semantics; GCP SSH access is approved separately.
   blocked_services_choice = {

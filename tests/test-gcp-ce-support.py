@@ -78,6 +78,34 @@ class SupportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             support.release_manifest([releases], "linux_amd64")
 
+    def test_latest_preview_on_later_page_never_falls_back_to_old_asset(self):
+        old = {
+            "tag_name": "v0.9.7",
+            "published_at": "2026-01-01",
+            "draft": False,
+            "assets": [
+                {"name": "terraform-provider-f5xc_0.9.7_darwin_arm64.zip"},
+                {"name": "terraform-provider-f5xc_0.9.7_SHA256SUMS"},
+            ],
+        }
+        newest = {
+            "tag_name": "v0.9.8-rc.1",
+            "published_at": "2026-02-01",
+            "draft": False,
+            "prerelease": True,
+            "assets": [
+                {"name": "terraform-provider-f5xc_0.9.8-rc.1_darwin_arm64.zip"},
+                {"name": "terraform-provider-f5xc_0.9.8-rc.1_SHA256SUMS"},
+            ],
+        }
+        self.assertEqual(
+            support.release_manifest([[old], [newest]], "darwin_arm64")["version"],
+            "0.9.8-rc.1",
+        )
+        newest["assets"].pop(0)
+        with self.assertRaises(ValueError):
+            support.release_manifest([[old], [newest]], "darwin_arm64")
+
     def test_response_classification(self):
         for status, body, result in [
             (200, b'{"spec":{"site_state":"ONLINE"}}', "ONLINE"),

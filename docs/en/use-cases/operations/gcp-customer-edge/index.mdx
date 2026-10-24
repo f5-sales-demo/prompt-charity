@@ -22,8 +22,9 @@ Administrator IAM/API changes are prerequisites, outside the CE deployment. Keep
 **Private provider access comes first:** obtain an invitation to
 [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and
 authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the
-newest non-draft release, including prereleases, and rejects unsupported platform assets. The release checked on
-2026-10-22 is `v0.9.7`.
+newest non-draft release on every fresh run, including prereleases, and rejects unsupported platform assets. It uses no
+fixed release default. After discovery and review, the saved deployment plan binds the selected exact version and
+checksum so they cannot change between plan and apply. Existing deployments require a reviewed upgrade plan.
 
 ## Expected architecture
 

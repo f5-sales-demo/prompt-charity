@@ -3,8 +3,8 @@ terraform {
 
   required_providers {
     f5xc = {
-      source  = "registry.terraform.io/F5Networks/f5xc"
-      version = "= 0.9.7"
+      source = "registry.terraform.io/F5Networks/f5xc"
+      # Discovery must add version = "= <exact latest preview version>" before init.
     }
     google = {
       source  = "hashicorp/google"

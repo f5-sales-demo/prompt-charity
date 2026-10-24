@@ -28,8 +28,9 @@ re-resolve current release/image identities before deployment.
 Obtain an invitation to the private
 [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) repository
 and authenticated release access. A private repository can return 404 when access is missing. Confirm the native
-platform has a release asset. `v0.9.7` currently has `darwin_amd64`, `darwin_arm64`, `linux_amd64` and `windows_amd64`
-assets; Linux arm64 is unsupported in that release.
+platform has an asset in the newest non-draft release, including prereleases. Enumerate every authenticated release
+page on each fresh run; do not use a remembered version, cached lockfile, existing mirror or the stable-only latest
+endpoint. A missing native asset blocks that run; it does not authorize falling back to an older release.
 
 Check Terraform 1.5+, native archive/SHA256/HTTP/JSON tooling, GCP CLI identity, project API access, and Application
 Default Credentials separately. Do not print tokens. Inventory all subnets and secondary ranges, choose two
@@ -201,8 +202,10 @@ install -m 0755 "extracted/terraform-provider-f5xc_v$VERSION" "$DEST/"
 
 Reject missing/duplicate/malformed checksums and checksum mismatches before extraction or installation. Inspect archive
 members for unsafe paths. Handle platform-specific executable permissions/quarantine using native tools as needed. Pin
-`versions.tf` to `= <the exact resolved version>`; its current baseline below is `= 0.9.7`. If a new release differs,
-review its schema and revalidate before using it.
+`versions.tf` to `= <the exact resolved version>` before init. The template deliberately supplies no fixed f5xc version;
+discovery must add the exact constraint. Recheck the catalog before implementation and review an updated plan if a
+newer release appeared. Reject an absent/loose constraint or an older cached lockfile. Verify the selected release's
+schema and revalidate before using it; keep this binding through saved-plan apply and teardown.
 
 ## 3. Probe marketplace licence acceptance
 
@@ -214,10 +217,17 @@ a failed probe as approval to alter marketplace policy.
 
 ## 4. Write the nine Terraform files
 
-Create a private task directory and private inputs. The defaults intentionally require explicit project, region, zone,
+After approval, use `terraform/` and `docs/` relative to the active private workspace. Confirm the Terraform files and
+generated `docs/terraform.md` appear in its explorer. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
+creates no workspace files. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
+
+After formatting and validation, generate `docs/terraform.md` from the `terraform/` module with terraform-docs. Reuse an
+installed tool or include its verified native installation in local setup approval. Regenerate after configuration
+changes, covering requirements, providers, resources, inputs and outputs without credentials, raw state or plan contents.
+Retain the files and documentation through teardown for review.
 
 The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
 
@@ -281,7 +291,7 @@ filtering still need discovery.
 
 ### site.tf
 
-Provider 0.9.7 documents `block_all_services=true` as **Enable all Node Local Services** (WebUI, SSH and DNS),
+Verify `block_all_services=true` against the selected latest release: it has been documented as **Enable all Node Local Services** (WebUI, SSH and DNS),
 despite its negative field name. Disclose this default during planning and confirm it against the selected release.
 GCP SSH reachability is a separate approval; do not silently invert the XC service choice.
 

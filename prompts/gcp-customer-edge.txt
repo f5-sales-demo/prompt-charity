@@ -44,8 +44,20 @@ identify a resume, but never adopt or remove unowned resources.
 
 ## Read-only discovery
 
+For a clean-room qualification iteration, start a fresh native chat in a new
+empty workspace and verify its inventory before any setup. Supply only this
+canonical prompt and current customer inputs; do not copy earlier Terraform,
+plans, state, checkpoints or remediation hints into the new run. Preserve prior
+attempts privately. Verify prior task-owned deployment resources are absent
+before starting another deployment; uncertainty blocks that iteration. Existing
+credentials, the configured profile and approved tools may remain outside the
+workspace, but reverify identities and discover the latest provider each time.
+Do not clear an existing workspace or delete unrelated resources to make it clean.
+A requested resume is a separate workflow and preserves its checkpoint/ownership.
+
 Discover the operating system, architecture, shell, available native commands,
-Terraform version (at least 1.5), JSON/HTTP/archive/SHA256 tooling, and credential
+Terraform version (at least 1.5), terraform-docs availability/version,
+JSON/HTTP/archive/SHA256 tooling, and credential
 mechanisms. Select commands appropriate to the discovered environment rather
 than assuming a shell, operating system, harness, plugin or tool name.
 Verify the shell actually used by the agent's terminal tool. Run a harmless
@@ -132,18 +144,27 @@ provides prebuilt releases; do not assume it is on the public Terraform registry
 or attempt to compile it. Environment tokens can shadow stored GitHub credentials;
 check presence without exposing values and select a verified authenticated identity.
 
-Enumerate all release pages. Select the newest non-draft release by publication
-time, INCLUDING prereleases. Resolve its exact version, platform zip filename,
-release asset identity, and published SHA256; do not use a loose constraint or
-implicitly exclude prereleases. Fail discovery clearly if the native platform
-asset or an exact checksum is absent. Current baseline checked on 2026-10-22 is
-v0.9.7; re-resolve at execution time. Unsupported assets are a prerequisite failure.
+At the start of every fresh run, discover the LATEST available preview release.
+Enumerate all authenticated release pages and select the newest non-draft release
+by publication time, INCLUDING prereleases. Do not use a version remembered from
+this prompt, a prior receipt, an existing mirror or a cached Terraform lockfile.
+Do not use GitHub's stable-only latest-release endpoint or choose an older release
+when the newest lacks a native asset. Missing native assets or an exact checksum
+block deployment with evidence; do not compile the provider or silently fall back.
+Resolve the selected release's exact version, native platform zip, asset identity
+and published SHA256. Recheck the release catalog before implementation; if a newer
+release appeared, return an updated plan with its schema and checksum for review.
+Then bind the reviewed saved plan to that selected exact version and immutable
+asset. This per-run binding prevents changes between plan and apply; it is not a
+fixed default for future runs. A resumed or existing deployment keeps its reviewed
+provider binding until a separate reviewed upgrade plan changes it.
 
-Disclose the node-local service policy DURING PLANNING. In provider 0.9.7,
-blocked_services_choice.block_all_services=true is documented as "Enable all
-Node Local Services" (WebUI, SSH and DNS), despite its negative field name.
-This recipe retains that documented default; GCP SSH access still defaults to
-none. Read the selected release's documentation and confirm its schema before
+Disclose the node-local service policy DURING PLANNING using the selected latest
+release's documentation and schema. Do not infer behaviour from a negative field
+name: blocked_services_choice.block_all_services=true has been documented as
+"Enable all Node Local Services" (WebUI, SSH and DNS). Verify that interpretation
+for the selected release and explain the resulting policy. Preserve the reviewed
+policy; GCP SSH access still defaults to none. Confirm the selected schema before
 deployment. Report any unresolved semantics before deployment approval, not
 after creation. Do not silently invert the choice or equate GCP SSH reachability
 with the XC node-local service policy; a different policy needs a reviewed plan.
@@ -379,19 +400,31 @@ cost and teardown. Include the GCP authentication method, effective service
 account if used, and separately approved authentication setup. Give objective
 acceptance criteria and ordered implementation,
 verification and recovery steps. List proposed installations, file creation,
-licence probe, and deployment explicitly. Planning must make no deployment changes.
+licence probe, and deployment explicitly. Identify the active IDE workspace and
+(or current working directory in a terminal client). Default to relative paths:
+terraform/ for .tf files and saved Terraform plans, and docs/terraform.md for
+generated terraform-docs documentation. Both must appear in the workspace explorer. If the workspace is not private, propose
+an owner-only workspace and opening it before implementation. Do not silently
+write Terraform into an unrelated sibling or scratch directory hidden from the
+active workspace. Credentials stay outside the Terraform directory; the private
+checkpoint and provider scratch may remain outside the workspace. Planning must
+create no workspace files and make no deployment changes.
 Stop after the plan. Require explicit approval before any of those mutations.
 
 ## Approved implementation
 
 After approval, announce each phase and expected wait, then execute the scoped
-plan without asking for routine reconfirmation. Preserve failures and private raw
+plan without asking for routine reconfirmation. Create the approved Terraform
+directory at ./terraform and documentation directory at ./docs relative to the
+approved active workspace. Verify the generated files are visible in its explorer. Preserve failures and private raw
 evidence. Download the selected release asset and checksums into a private task
 scratch directory. Match exactly one checksum entry for the exact zip filename,
 verify SHA256 before extraction or installation, and reject missing, duplicated,
 malformed or mismatched checksums. Install into Terraform's native local plugin
 mirror for the resolved version and platform. Pin required_providers f5xc to that
-EXACT version. Record other resolved provider versions in the lockfile.
+EXACT version before init; reject an absent/loose constraint or an older cached
+lockfile. Never copy a fixed provider version from the fallback template. Record
+other resolved provider versions in the lockfile.
 
 Create a uniquely named temporary disk from the pinned image in the selected
 project/zone to verify image-use capability and marketplace licence acceptance.
@@ -419,6 +452,14 @@ Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
 network.tf, firewall.tf, site.tf, token.tf, instance.tf and outputs.tf, plus private
 input values and an active-session registration poller. Keep configuration,
 state, saved plans, provider schemas, VM metadata and raw responses private.
+After fmt/validate, use terraform-docs to generate docs/terraform.md from the
+terraform/ module. Reuse an installed tool; if absent, install it only as part of
+approved local setup, verify the native download/checksum and retain its receipt.
+Keep generated documentation in sync with configuration changes. Include module
+requirements, providers, resources, inputs and outputs; never include credential
+values, registration tokens, raw state, IAM policies or saved-plan contents.
+Verify both directories and the generated documentation before deployment, and
+retain configuration/documentation through teardown for review.
 
 Use random_id with byte_length=3 and local.name="${var.name_prefix}-${random_id.suffix.hex}".
 Derive every owned name and a task-specific CE tag from local.name. Scope every
@@ -540,7 +581,9 @@ ignored user-data: rotating a token alone will not update VM metadata, and a res
 can reuse stale data. Explain exact replacement/metadata effects and require
 approval of recovery changes before executing them. Keep the failed attempt.
 
-Completion requires evidence for ALL three gates:
+Completion also requires the approved terraform/ files and generated
+docs/terraform.md to be visible in the active workspace and free of credential
+values. Deployment completion requires evidence for ALL three gates:
 1. Two consecutive validated site_state=ONLINE observations at least 30 seconds apart.
 2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
    node's ens4=site_local_network (SLO, primary=true) and
