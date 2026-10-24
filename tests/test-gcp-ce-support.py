@@ -333,9 +333,15 @@ class IamTests(unittest.TestCase):
             with self.subTest(binding_scope=binding_scope):
                 result = self.preflight()
                 self.assertTrue(
-                    all(gate["status"] == "PASS" for gate in result["gates"])
+                    all(
+                        gate["status"] == "PASS"
+                        for gate in result["gates"]
+                        if gate["gate"] != "apis_quota_project"
+                    )
                 )
-                self.assertIsNone(support.iam_team_request(result))
+                self.assertIsNone(
+                    support.iam_team_request(result)["administrator_command_argv"]
+                )
                 iam = next(
                     request
                     for request in self.requests
@@ -350,6 +356,24 @@ class IamTests(unittest.TestCase):
                     in request[0]
                 )
                 self.assertEqual(compute[1], self.sentinel + "-effective")
+
+    def test_effective_identity_unverified_cannot_pass_selection(self):
+        self.responses["iam.googleapis.com"] = (200, b'{"permissions":[]}')
+        result = self.preflight()
+        self.assertEqual(result["gates"][0]["status"], "UNKNOWN")
+        self.assertEqual(result["gates"][1]["status"], "BLOCKED")
+        self.assertIsNotNone(support.iam_team_request(result)["required_role"])
+
+    def test_api_permissions_cannot_pass_unchecked_capacity(self):
+        result = self.preflight()
+        self.assertEqual(result["gates"][3]["status"], "UNKNOWN")
+        self.assertIn("regional capacity", result["gates"][3]["reason"])
+        self.assertIsNone(support.iam_team_request(result)["required_role"])
+        resumed = support.wait_iam_propagation(
+            self.preflight, True, 600, wall_time=lambda: self.clock[0]
+        )
+        self.assertEqual(resumed["status"], "REVIEW_REQUIRED")
+        self.assertEqual(len(resumed["observations"]), 1)
 
     def test_wrong_principal_binding_does_not_grant_caller(self):
         self.responses["iam.googleapis.com"] = (200, b'{"permissions":[]}')
@@ -375,7 +399,11 @@ class IamTests(unittest.TestCase):
         # Cloud-only tokens can work for compute but omit email in tokeninfo.
         self.responses["require_email_scope"] = True
         self.assertTrue(
-            all(gate["status"] == "PASS" for gate in self.preflight()["gates"])
+            all(
+                gate["status"] == "PASS"
+                for gate in self.preflight()["gates"]
+                if gate["gate"] != "apis_quota_project"
+            )
         )
 
     def test_missing_compute_permissions_preserves_custom_role_request(self):
@@ -554,7 +582,11 @@ class IamTests(unittest.TestCase):
                 checkpoint, prompt, self.selection, observer.observe
             )
             self.assertTrue(
-                all(gate["status"] == "PASS" for gate in resumed["preflight"]["gates"])
+                all(
+                    gate["status"] == "PASS"
+                    for gate in resumed["preflight"]["gates"]
+                    if gate["gate"] != "apis_quota_project"
+                )
             )
             self.assertEqual(resumed["installation_receipts"], ["a" * 64])
             self.assertEqual(resumed["propagation_deadline"], 600)
@@ -692,7 +724,7 @@ class IamTests(unittest.TestCase):
         result = support.wait_iam_propagation(
             self.preflight, True, 600, wall_time=lambda: 0, sleep=lambda _seconds: None
         )
-        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["status"], "REVIEW_REQUIRED")
         self.assertNotIn("deployment", result)
 
     def test_selection_injection_or_wrong_owning_project_rejected(self):

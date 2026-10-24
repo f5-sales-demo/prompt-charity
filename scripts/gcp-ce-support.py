@@ -364,6 +364,14 @@ def iam_preflight(
             gates[-1]["next_action"] = (
                 "review a scoped image/licence probe; do not infer an IAM grant"
             )
+    if gates[0]["status"] == "PASS" and any(
+        gates[i]["status"] != "PASS" for i in (1, 4)
+    ):
+        gates[0].update(
+            status="UNKNOWN",
+            reason="caller verified; effective Terraform identity remains unverified",
+            next_action=actions[0],
+        )
     return {"schema_version": 1, "selection": dict(selection), "gates": gates}
 
 
@@ -503,9 +511,16 @@ def wait_iam_propagation(
             return {"status": "PASS", "observations": observations}
         if (
             wall_time() < deadline
-            and all(result["gates"][i]["status"] == "PASS" for i in (0, 1, 3, 4))
-            and result["gates"][2]["status"] == "UNKNOWN"
-            and "licence probe" in result["gates"][2]["reason"]
+            and all(result["gates"][i]["status"] == "PASS" for i in (0, 1, 4))
+            and all(
+                gate["status"] == "PASS"
+                or (gate["status"] == "UNKNOWN" and marker in gate["reason"])
+                for gate, marker in zip(
+                    result["gates"][2:4],
+                    ("licence probe", "regional capacity"),
+                    strict=True,
+                )
+            )
         ):
             return {"status": "REVIEW_REQUIRED", "observations": observations}
         sleep(max(0, min(started + 30, deadline) - wall_time()))
@@ -661,10 +676,7 @@ class GcpIamObserver:
             or self.selection["caller"].split(":", 1)[1]
         )
         if self.identities.get(identity) != expected:
-            return (
-                "UNKNOWN",
-                "authenticated identity unavailable or different from selection",
-            )
+            return "UNKNOWN", "authenticated identity unavailable or mismatched"
         suffix = (
             "/testIamPermissions"
             if resource.startswith("https://compute.googleapis.com/")
@@ -679,10 +691,7 @@ class GcpIamObserver:
         """Implement the five-gate observation protocol with fail-closed evidence."""
         if gate == "identity_selection":
             if self.identities["caller"] != self.selection["caller"].split(":", 1)[1]:
-                return (
-                    "UNKNOWN",
-                    "caller authentication expired, unavailable or mismatched",
-                )
+                return "UNKNOWN", "caller authentication expired or mismatched"
             return (
                 "PASS",
                 "caller verified; explicit selection recorded; effective identity checked in dependent gates",
@@ -700,10 +709,7 @@ class GcpIamObserver:
                 "caller",
             )
             if result[0] == "PASS" and not self.effective_token():
-                return (
-                    "UNKNOWN",
-                    "permission present but short-lived token request failed or was invalid",
-                )
+                return "UNKNOWN", "permission granted; token generation unverified"
             return result
         if gate == "deployment_permissions":
             result = self.permissions(
@@ -798,8 +804,8 @@ class GcpIamObserver:
         if result[0] != "PASS":
             return result
         return (
-            "PASS",
-            "APIs and quota-project permission verified; independently check regional capacity before deployment",
+            "UNKNOWN",
+            "APIs and quota-project permission verified; regional capacity unverified; complete native quota/machine discovery",
         )
 
     @staticmethod
@@ -823,19 +829,13 @@ class GcpIamObserver:
         if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get(
             "GOOGLE_CREDENTIALS"
         ):
-            return (
-                "UNKNOWN",
-                "explicit credential source requires independent ADC verification; never fall back",
-            )
+            return "UNKNOWN", "explicit credentials unverified; never fall back"
         if self.selection["credential_method"] == "impersonated-adc" and os.environ.get(
             "GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
         ):
             return "BLOCKED", "conflicting double impersonation configuration"
         if self.selection["credential_method"] == "json-key":
-            return (
-                "UNKNOWN",
-                "private key ADC requires native credential-aware read-only verification",
-            )
+            return "UNKNOWN", "key ADC needs native read-only verification"
         metadata = self.adc_metadata()
         if metadata.get("quota_project_id") != self.selection["quota_project"]:
             return "UNKNOWN", "ADC quota project unverified or different from selection"
@@ -877,10 +877,7 @@ class GcpIamObserver:
             except (ValueError, TypeError, KeyError):
                 adc_identity = ""
         if self.identities.get("effective") != expected or adc_identity != expected:
-            return (
-                "UNKNOWN",
-                "CLI/ADC authentication expired, unavailable or mismatched",
-            )
+            return "UNKNOWN", "CLI/ADC authentication unavailable or mismatched"
         status, body = self.request(
             "https://compute.googleapis.com/compute/v1/projects/"
             + self.selection["deployment_project"],
