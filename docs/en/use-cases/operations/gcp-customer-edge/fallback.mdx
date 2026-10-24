@@ -217,17 +217,19 @@ a failed probe as approval to alter marketplace policy.
 
 ## 4. Write the nine Terraform files
 
-After approval, use `terraform/` and `docs/` relative to the active private workspace. Confirm the Terraform files and
-generated `docs/terraform.md` appear in its explorer. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
+After approval, use `terraform/` and, when enabled, `docs/` relative to the active private workspace. Confirm the
+Terraform files and any generated `docs/terraform.md` appear in its explorer. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
 creates no workspace files. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
 
-After formatting and validation, generate `docs/terraform.md` from the `terraform/` module with terraform-docs. Reuse an
-installed tool or include its verified native installation in local setup approval. Regenerate after configuration
-changes, covering requirements, providers, resources, inputs and outputs without credentials, raw state or plan contents.
-Retain the files and documentation through teardown for review.
+Check terraform-docs first. If installed, generate `docs/terraform.md` during approved file preparation without another
+docs-choice question. If missing, first ask whether generated docs are wanted and explain that yes requires installing
+the tool as part of approved local setup. No skips installation and docs without blocking deployment; do not create an
+empty `docs/` directory. Preserve an explicit opt-out and the choice in the approved checkpoint. For enabled docs,
+regenerate after configuration changes, covering requirements, providers, resources, inputs and outputs without
+credentials, raw state or plan contents. Retain the files and any generated docs through teardown for review.
 
 The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
 

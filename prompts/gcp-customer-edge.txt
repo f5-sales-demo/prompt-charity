@@ -58,7 +58,15 @@ A requested resume is a separate workflow and preserves its checkpoint/ownership
 Discover the operating system, architecture, shell, available native commands,
 Terraform version (at least 1.5), terraform-docs availability/version,
 JSON/HTTP/archive/SHA256 tooling, and credential
-mechanisms. Select commands appropriate to the discovered environment rather
+mechanisms. Check terraform-docs before proposing its installation. If installed,
+include docs/terraform.md generation in approved file preparation by default,
+without a separate documentation-choice question. If missing, first ask whether
+the user wants generated docs, explaining that yes requires installing
+terraform-docs as part of local setup. Continue independent read-only checks
+while awaiting that choice. Yes includes verified installation in the setup plan;
+no skips installation and docs generation without blocking CE deployment. Respect
+an explicit opt-out and retain the choice on resume; do not ask again or silently
+install it. Planning itself never creates docs or installs tools. Select commands appropriate to the discovered environment rather
 than assuming a shell, operating system, harness, plugin or tool name.
 Verify the shell actually used by the agent's terminal tool. Run a harmless
 multiline output check and confirm complete output and exit status before long
@@ -402,8 +410,9 @@ acceptance criteria and ordered implementation,
 verification and recovery steps. List proposed installations, file creation,
 licence probe, and deployment explicitly. Identify the active IDE workspace
 (or current working directory in a terminal client). Default to relative paths:
-terraform/ for .tf files and saved Terraform plans, and docs/terraform.md for
-generated terraform-docs documentation. Both must appear in the workspace explorer.
+terraform/ for .tf files and saved Terraform plans, and docs/terraform.md when
+documentation is enabled. Include the documentation choice and any required tool
+installation in the plan. Generated files must appear in the workspace explorer.
 If the workspace is not private, propose
 an owner-only workspace and opening it before implementation. Do not silently
 write Terraform into an unrelated sibling or scratch directory hidden from the
@@ -416,8 +425,8 @@ Stop after the plan. Require explicit approval before any of those mutations.
 
 After approval, announce each phase and expected wait, then execute the scoped
 plan without asking for routine reconfirmation. Create the approved Terraform
-directory at ./terraform and documentation directory at ./docs relative to the
-approved active workspace. Verify the generated files are visible in its explorer.
+directory at ./terraform relative to the approved active workspace. Create ./docs
+only when documentation is enabled. Verify the generated files are visible in its explorer.
 Preserve failures and private raw evidence. Download the selected release asset and checksums into a private task
 scratch directory. Match exactly one checksum entry for the exact zip filename,
 verify SHA256 before extraction or installation, and reject missing, duplicated,
@@ -453,14 +462,18 @@ Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
 network.tf, firewall.tf, site.tf, token.tf, instance.tf and outputs.tf, plus private
 input values and an active-session registration poller. Keep configuration,
 state, saved plans, provider schemas, VM metadata and raw responses private.
-After fmt/validate, use terraform-docs to generate docs/terraform.md from the
-terraform/ module. Reuse an installed tool; if absent, install it only as part of
-approved local setup, verify the native download/checksum and retain its receipt.
-Keep generated documentation in sync with configuration changes. Include module
-requirements, providers, resources, inputs and outputs; never include credential
-values, registration tokens, raw state, IAM policies or saved-plan contents.
-Verify both directories and the generated documentation before deployment, and
-retain configuration/documentation through teardown for review.
+When documentation is enabled, after fmt/validate use terraform-docs to generate
+docs/terraform.md from the terraform/ module. Reuse the installed tool without
+another question; install a missing tool only when the user chose docs and local
+setup is approved. Verify its native download/checksum and retain the receipt.
+Keep generated docs in sync with configuration changes. Include requirements,
+providers, resources, inputs and outputs; never include credential values,
+registration tokens, raw state, IAM policies or saved-plan contents. Verify the
+Terraform directory and enabled documentation before deployment. If docs were
+declined, record them as skipped by choice, not a failure, and do not create an
+empty docs directory. When checkpoint saving is approved, retain the docs choice,
+tool availability and installation approval so resume does not repeat the question.
+Retain configuration and any generated docs through teardown for review.
 
 Use random_id with byte_length=3 and local.name="${var.name_prefix}-${random_id.suffix.hex}".
 Derive every owned name and a task-specific CE tag from local.name. Scope every
@@ -582,9 +595,9 @@ ignored user-data: rotating a token alone will not update VM metadata, and a res
 can reuse stale data. Explain exact replacement/metadata effects and require
 approval of recovery changes before executing them. Keep the failed attempt.
 
-Completion also requires the approved terraform/ files and generated
-docs/terraform.md to be visible in the active workspace and free of credential
-values. Deployment completion requires evidence for ALL three gates:
+Completion also requires the approved terraform/ files and, when documentation
+is enabled, docs/terraform.md to be visible in the active workspace and free of
+credential values. An explicit docs opt-out does not block completion. Deployment completion requires evidence for ALL three gates:
 1. Two consecutive validated site_state=ONLINE observations at least 30 seconds apart.
 2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
    node's ens4=site_local_network (SLO, primary=true) and
