@@ -5,13 +5,29 @@ Do not edit files, install tools, create licence probes, initialize Terraform,
 deploy, or change external state until I explicitly approve your scoped plan.
 Stop after the plan and wait for approval. Once approved, implement and verify
 that plan continuously, keeping the session active through registration.
-During planning, disable file-writing, memory-writing and delegation tools for
-this session; allow only read-only investigation. Do not invoke a memory tool to create
-a plan artifact, including plan.md in native session memory. Return the plan in chat.
+During planning, disable file-writing, memory-writing and delegation tools by
+default; allow only read-only investigation and return the plan in chat. Do not
+invoke a memory tool to create plan.md in native session memory.
 If the IDE's Plan mode normally saves a file, skip that optional step or disable
 its writing tool for this session; report a mandatory-writing limitation before
 proceeding. Automatic platform chat/tool history is allowed. Do not change the
 user's normal profile or global settings to enforce this boundary.
+Before creating any native planning documents, offer a separate planning-file
+approval with the exact absolute workspace and relative file paths. If declined,
+keep planning read-only and artifact-free. For Kiro, use the Requirements-First
+Feature Spec workflow and approve ONLY these paths in the selected workspace:
+.kiro/specs/gcp-customer-edge/requirements.md
+.kiro/specs/gcp-customer-edge/design.md
+.kiro/specs/gcp-customer-edge/tasks.md
+.kiro/specs/gcp-customer-edge/.config.kiro
+This exception permits only those documents and necessary parent directories.
+Native workflow agents receive the same scope; do not delegate wider writes or
+execute Spec tasks until the deployment plan is explicitly approved. Check path
+containment before every write; reject traversal and symlink escapes. Inventory
+all workspace changes, including hidden files, at each approval boundary.
+Authentication, installations, checkpoints, IAM administration, licence probes
+and deployment retain their separate approvals. Return the five prerequisite
+gates and private IAM-team request in chat even when Spec documents are approved.
 After file-creation approval, enable only the writing tools needed for that scope.
 
 ## Objective and inputs
@@ -83,8 +99,9 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
-During planning, create no temporary scripts, HTTP response files, diagnostic
-files or output redirections, inside or outside the workspace. Perform checks
+During planning, apart from separately approved native Spec documents, create no
+temporary scripts, HTTP response files, diagnostic files or output redirections,
+inside or outside the workspace. Perform checks
 and parse responses in memory. A file-reader or search tool that returns
 credential bytes is disclosure, even if you never quote those bytes afterward.
 If the available planning tools cannot make authenticated requests privately,
@@ -362,19 +379,25 @@ CE teardown; they are not owned resources of this Terraform state.
 ## Private checkpoint and same-session resume
 
 During native planning, return prerequisites and the IAM-team request in chat;
-create no workspace files, downloaded helper or plan.md. This prompt contains
+create no files except the separately approved native Spec documents. Do not
+download a helper or create plan.md. This prompt contains
 sufficient instructions to perform the checks without downloading a helper.
 After explicit local setup approval, save an owner-only checkpoint outside the
 workspace with the SHA256 of this exact prompt, caller, Terraform service account,
 service-account project, deployment/quota projects, credential method, completed
-gate observations, outstanding administrator requests, scoped approvals,
+gate observations, outstanding administrator requests, scoped approvals including
+separate planning-file approval and its exact workspace/path scope,
 installation receipts and the original propagation deadline. Store no token, key
 contents, complete IAM policy, credential-bearing response or raw transcript in
 it. Raw failures belong only in separate private evidence with secret handling.
-A checkpoint-only approval authorizes ONLY that checkpoint. It does not authorize
+A checkpoint-only approval authorizes ONLY that checkpoint. Spec approval alone
+cannot authorize checkpoint creation. Checkpoint approval does not authorize
 native session-memory plan files, workspace plan.md, scripts or other artifacts.
-Keep the plan and IAM-team request in the conversation until their own approved
-file-creation phase; private storage or storage owned by an agent is not an exemption.
+Keep the plan in chat until its own planning-file approval; always return the
+IAM-team request in chat. Private or agent-owned storage is not an exemption.
+Write checkpoint schema version 2 and continue reading legacy version 1 without
+inferring planning-file approval. Revalidate workspace/path containment on resume;
+workspace or path changes revoke planning-file and dependent deployment approval.
 Copy the five complete prerequisite rows into the checkpoint, including status,
 reason/evidence, caller, target resource, owner, next action and observation time.
 PASS rows also retain a responsible team and recheck action; required metadata
@@ -398,7 +421,8 @@ prompt hash requires review against the revised scope. Recheck all five gates
 before deployment. Preserve installation receipts: do not repeat approved
 installations on session restart, silently change identities or deploy
 automatically. IAM confirmation, local setup approval and scoped deployment
-approval remain separate. Passing authentication never authorizes deployment.
+approval and planning-file approval remain separate. Passing authentication never
+authorizes deployment. A revised prompt also requires review of Spec approval.
 
 ## Plan and approval boundary
 
