@@ -175,7 +175,14 @@ account; do not attach one merely to run Terraform as a service account.
 Return one prerequisite table in the conversation, without creating workspace
 files (including plan.md). Every row has gate, PASS/BLOCKED/UNKNOWN, reason and
 evidence, caller, target resource, responsible team, next action and UTC observation
-time. Never include tokens, key contents or complete IAM policies. The five gates:
+time. The status cell must be exactly PASS, BLOCKED or UNKNOWN, with no qualifier.
+Do not introduce PARTIAL or another status. Put passing subchecks and pending
+subchecks in the evidence column. For each gate, a validated missing requirement
+makes it BLOCKED; otherwise an unverified required check makes it UNKNOWN; PASS
+requires every required check to pass. In particular, caller identity alone cannot
+pass identity selection before the effective Terraform identity is verified, and
+enabled APIs cannot pass the API/quota gate while capacity is unchecked.
+Never include tokens, key contents or complete IAM policies. The five gates:
 1. Identity selection: verified caller and effective Terraform identity, requested
    service account/project, deployment project and credential method agree.
 2. Impersonation access: the verified caller has iam.serviceAccounts.getAccessToken
