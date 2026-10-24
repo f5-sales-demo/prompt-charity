@@ -3,7 +3,7 @@ terraform {
 
   required_providers {
     f5xc = {
-      source  = "registry.terraform.io/F5Networks/f5xc"
+      source = "registry.terraform.io/F5Networks/f5xc"
       # Unresolved template constraint: replace with the exact latest preview before init.
       version = ">= 0.0.0"
     }
