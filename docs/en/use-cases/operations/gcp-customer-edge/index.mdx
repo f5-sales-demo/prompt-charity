@@ -49,6 +49,9 @@ task execution waits for deployment approval. All five prerequisites and the pri
 chat. Spec approval does not authorize authentication, installations, checkpoints, IAM changes or deployment.
 Checkpoint schema version 2 binds planning-file approval to the workspace and paths and reads legacy version 1;
 scope changes invalidate planning-file and dependent deployment approval. Traversal and symlink escapes are rejected.
+The Spec keeps all gates in at most six workflow-phase requirement groups. Native writes use at most 4096 UTF-8
+bytes of text per call, with larger documents split into bounded writes or targeted edits. Output-limit and
+argument-validation failures are retained and repaired before actual-file verification.
 
 On an MDM-managed Mac, the prompt requires no sudo or privilege requests and uses the IT-controlled brew for any
 approved nonprivileged installation. Wrapper TLS failures are diagnosed against existing corporate trust for the

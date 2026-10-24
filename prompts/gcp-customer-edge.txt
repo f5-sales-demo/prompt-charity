@@ -25,6 +25,16 @@ Native workflow agents receive the same scope; do not delegate wider writes or
 execute Spec tasks until the deployment plan is explicitly approved. Check path
 containment before every write; reject traversal and symlink escapes. Inventory
 all workspace changes, including hidden files, at each approval boundary.
+Keep native Spec documents concise while retaining every acceptance gate. Group
+related criteria into at most six top-level workflow-phase requirements; reference
+this canonical prompt's full hash instead of duplicating its commands or schemas.
+Pass these constraints to native workflow agents too. Limit each native file-write
+or append text argument to 4096 UTF-8 bytes; split longer documents into bounded
+native writes or targeted edits within the approved paths. An output-limit stop,
+incomplete tool arguments or failed validation is a failed request, not a write.
+Preserve it and repair the request with smaller complete arguments; never repeat
+the unchanged failed request or infer file creation from a preview. Verify the
+actual files after writing, without broadening approval or resetting deadlines.
 Authentication, installations, checkpoints, IAM administration, licence probes
 and deployment retain their separate approvals. Return the five prerequisite
 gates and private IAM-team request in chat even when Spec documents are approved.

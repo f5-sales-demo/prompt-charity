@@ -110,7 +110,11 @@ Keep planning read-only and artifact-free by default. Before any native planning
 separate planning-file approval naming the absolute workspace and exact relative paths. For Kiro, use the
 Requirements-First Feature Spec workflow and approve only `.kiro/specs/gcp-customer-edge/requirements.md`,
 `design.md` and `tasks.md` in that same directory, plus `.config.kiro` in that Spec directory and necessary parent directories.
-Native workflow agents inherit only that scope; Spec task execution waits for deployment approval. Reject traversal
+Native workflow agents inherit only that scope; Spec task execution waits for deployment approval.
+Keep all acceptance gates in concise documents with at most six workflow-phase requirement groups. Pass the
+same constraints to workflow agents. Bound each native write/append text argument to 4096 UTF-8 bytes, split larger
+documents or use targeted edits, and verify the actual files. Retain output-limit or argument-validation failures;
+repair the request instead of repeating it unchanged. A preview never proves a successful write. Reject traversal
 and symlink escapes before writing; inventory hidden files too at each approval boundary. Return all five gates and
 the private IAM-team request in chat. Authentication, installations, checkpoints, IAM administration, licence probes
 and deployment retain separate approvals. Spec approval alone cannot authorize checkpoint creation.
