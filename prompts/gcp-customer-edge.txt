@@ -99,6 +99,20 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
+On an MDM-managed Mac, do not use sudo or request privileges. Respect the
+corporate installation policy: any approved nonprivileged installation must use
+the IT-controlled brew with its security hooks. Reuse installed tools. Never
+change system trust, the normal profile or global settings to repair transport.
+Before authenticated checks, discover existing corporate CA configuration from
+non-secret path metadata and installed CLI settings. A wrapper's session CA bundle
+may omit corporate interception roots even when native login works. Preserve TLS
+verification and use the existing corporate CA for the affected request or command
+process only; use an in-memory SSL context or scoped child environment. Do not
+create or install a CA bundle during artifact-free planning. If trust is unclear,
+report transport UNKNOWN and pause. Recheck authenticated API identity and private
+repository access before diagnosing an invalid GitHub token or asking for login:
+an auth-status failure behind a wrapper does not prove the stored credential is
+invalid. Never refresh or replace credentials to bypass an unresolved TLS failure.
 During planning, apart from separately approved native Spec documents, create no
 temporary scripts, HTTP response files, diagnostic files or output redirections,
 inside or outside the workspace. Perform checks

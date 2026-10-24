@@ -184,6 +184,13 @@ probe. All following steps belong to that approved implementation.
 
 ## 2. Resolve and install the exact provider
 
+On an MDM-managed Mac, use no sudo or privilege requests. Reuse installed tools; any approved nonprivileged
+installation must use the IT-controlled brew. Diagnose wrapper TLS failures using existing corporate CA path
+metadata and CLI settings, with the existing trust source scoped to the affected process or an in-memory SSL
+context. Preserve verification and system trust; create no CA files during artifact-free planning. Recheck the
+authenticated API identity and private repository access before inferring invalid credentials from auth-status
+output or requesting another login.
+
 Enumerate all GitHub release pages, filter out drafts, include prereleases, and select the newest publication timestamp.
 Do not copy stale version constraints from the provider README or use a loose constraint. The following illustrates a
 POSIX shell with `gh`, `jq`, `python3`, and archive tooling; select appropriate native commands on your own host.

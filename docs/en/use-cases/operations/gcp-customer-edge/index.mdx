@@ -50,6 +50,11 @@ chat. Spec approval does not authorize authentication, installations, checkpoint
 Checkpoint schema version 2 binds planning-file approval to the workspace and paths and reads legacy version 1;
 scope changes invalidate planning-file and dependent deployment approval. Traversal and symlink escapes are rejected.
 
+On an MDM-managed Mac, the prompt requires no sudo or privilege requests and uses the IT-controlled brew for any
+approved nonprivileged installation. Wrapper TLS failures are diagnosed against existing corporate trust for the
+affected process, without changing system trust or creating planning artifacts. Auth-status output alone cannot
+establish invalid credentials.
+
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
 
 <div id="gcp-customer-edge-canonical-code">
