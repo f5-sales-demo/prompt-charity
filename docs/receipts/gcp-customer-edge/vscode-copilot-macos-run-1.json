@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "prompt_sha256": "55c6826d0f68e2249f2268a75a7a6a5723a83d81c5b3655f29ba0e3d382ea977",
+  "run": "final-hash clean-room 1",
+  "harness": {
+    "name": "VS Code GitHub Copilot Chat",
+    "vscode_version": "1.143.1",
+    "extension_version": "0.71.0",
+    "os": "macOS 26.7.1",
+    "platform": "darwin_arm64",
+    "model": "claude-opus-5-5",
+    "model_picker_label": "Claude Opus 5.5",
+    "native_harness": "Local extension host",
+    "native_planning_mode": true,
+    "same_session_implementation": true,
+    "private_profile": true,
+    "permissions": "Allow all",
+    "planning_memory_and_delegation_disabled": true
+  },
+  "location": {
+    "region": "us-east4",
+    "zone": "us-east4-a"
+  },
+  "planning": {
+    "empty_start_directory": true,
+    "no_deliberate_workspace_or_memory_plan_artifacts": true,
+    "missing_impersonation_detected": true,
+    "private_iam_team_request_produced": true,
+    "iam_change_performed_by_separate_operator": true,
+    "checkpoint_saved_before_first_propagation_poll": true,
+    "original_confirmation_deadline_preserved": true,
+    "fresh_permission_token_identity_checks": true,
+    "independent_cidr_nonoverlap_checked": true
+  },
+  "provider": {
+    "version": "0.9.7",
+    "release_tag": "v0.9.7",
+    "prerelease": true,
+    "release_id": 412359117,
+    "asset_id": 639311100,
+    "asset": "terraform-provider-f5xc_0.9.7_darwin_arm64.zip",
+    "sha256": "010b7d729df3afff42dcf7448253af3b297967c63df0249b4fdc08f7cdc1e679",
+    "latest_catalog_discovered_each_run": true,
+    "verified_before_extraction": true,
+    "private_mirror": true,
+    "google_version": "8.8.1",
+    "random_version": "3.9.1"
+  },
+  "image": {
+    "name": "f5xc-ce-crt-20260801-0205-byol",
+    "immutable_id": "1689146860273445475"
+  },
+  "workspace": {
+    "terraform_files": "terraform/",
+    "saved_plans": "terraform/plans/",
+    "documentation": "docs/terraform.md",
+    "terraform_docs_version": "0.24.0",
+    "installed_tool_reused_without_docs_question": true,
+    "docs_contain_no_credentials": true
+  },
+  "deployment": {
+    "resource_count": 15,
+    "phased_saved_plans": [5, 10],
+    "saved_plan_digests": [
+      "2c0c801456f812e2f85ea6ecc0cc728f44deec4539dca50b5ef26fa9d1866d81",
+      "b461fc70ef704ad5a215d45559b142bcd8fd30d86beb0407dc2169f53a742d3e",
+      "1b7fb46300f257ae260e2e25b9b1ee200d16f4643542237a671daa8378f8e1d1"
+    ],
+    "no_public_ip": true,
+    "no_vm_service_account": true,
+    "project_ssh_keys_blocked": true,
+    "vm_created_at": "2026-10-24T02:47:31+00:00"
+  },
+  "gates": {
+    "online": true,
+    "consecutive_online_observations": ["2026-10-24T03:10:03Z", "2026-10-24T03:10:33Z"],
+    "original_registration_deadline": "2026-10-24T03:47:31+00:00",
+    "ens4_slo_primary": true,
+    "ens5_sli_nonprimary": true,
+    "independent_vm_nic_mac_match": true,
+    "post_registration_detailed_exit_code": 0,
+    "independent_detailed_exit_code": 0,
+    "online_rechecked_after_zero_plan": true
+  },
+  "disk": {
+    "provisioned_gb": 120,
+    "type": "pd-balanced",
+    "startup_filesystem_gib": 119,
+    "startup_used_gib": 29,
+    "startup_available_gib": 91,
+    "current_post_upgrade_available_space": "UNKNOWN",
+    "future_upgrade_test_performed": false
+  },
+  "regional_edges": {
+    "recorded_separately": true,
+    "names": ["ny8-nyc", "dc12-ash"]
+  },
+  "teardown": {
+    "saved_destroy_plan_sha256": "1b7fb46300f257ae260e2e25b9b1ee200d16f4643542237a671daa8378f8e1d1",
+    "managed_deletes": 15,
+    "state_empty": true,
+    "independent_exact_absence_checks": 17,
+    "all_absence_response_shapes_validated": true,
+    "gcp_and_xc_absent": true,
+    "checked_at": "2026-10-24T03:29:10.205116+00:00"
+  },
+  "observed_failures": [
+    {
+      "phase": "terraform init",
+      "reason": "intermittent TLS EOF from one HashiCorp CDN edge",
+      "recovery": "bounded retries succeeded without disabling signature verification"
+    }
+  ],
+  "evidence": {
+    "raw_transcripts_screenshots_states_and_iam_details": "private",
+    "native_session_export_supported_and_captured": true,
+    "native_export_sha256": "3a359f53f851a4f6abf60640cda32137ff42fb31d0d286f61aa9b7c4ac776f4d",
+    "credential_scan": {
+      "files_checked": 5,
+      "known_credential_values_checked": 3,
+      "credential_value_matches": 0,
+      "credential_pattern_matches": 0
+    },
+    "full_initial_input_fidelity": true,
+    "native_modes": ["Plan", "Plan", "agent", "agent", "agent", "agent"],
+    "native_request_count": 6
+  },
+  "iam_fixture_cleanup": {
+    "observed_at": "2026-10-24T04:50:04.115609+00:00",
+    "after_both_final_hash_runs": true,
+    "caller_token_creator_binding_absent": true,
+    "temporary_project_grants_absent": true,
+    "temporary_project_roles_removed": [
+      "roles/compute.admin",
+      "roles/serviceusage.serviceUsageConsumer",
+      "roles/orgpolicy.policyViewer"
+    ],
+    "service_account_absent": true,
+    "absence_response_shape_validated": true
+  }
+}

@@ -5,13 +5,23 @@ Do not edit files, install tools, create licence probes, initialize Terraform,
 deploy, or change external state until I explicitly approve your scoped plan.
 Stop after the plan and wait for approval. Once approved, implement and verify
 that plan continuously, keeping the session active through registration.
+During planning, disable file-writing, memory-writing and delegation tools for
+this session; allow only read-only investigation. Do not invoke a memory tool to create
+a plan artifact, including plan.md in native session memory. Return the plan in chat.
+If the IDE's Plan mode normally saves a file, skip that optional step or disable
+its writing tool for this session; report a mandatory-writing limitation before
+proceeding. Automatic platform chat/tool history is allowed. Do not change the
+user's normal profile or global settings to enforce this boundary.
+After file-creation approval, enable only the writing tools needed for that scope.
 
 ## Objective and inputs
 
 Deploy one Secure Mesh Site v2 Customer Edge in an existing authorized test GCP
 project, using Terraform and two network interfaces. This is a greenfield PoC.
 
-GCP project: [Existing project ID]
+GCP project: [Existing deployment project ID]
+GCP caller principal: [Human user:email or serviceAccount:email running Terraform]
+GCP quota project: [Explicit quota project ID for ADC/API requests]
 GCP authentication: [Existing ADC, service-account impersonation (recommended for
 a service account), or an organization-required private service-account JSON key]
 GCP service account: [Full service-account email and its owning project, if used]
@@ -23,6 +33,8 @@ SLI subnet: [Different non-overlapping private /26 CIDR, or request a checked pr
 F5 Distributed Cloud tenant: [Authorized tenant API URL ending in /api]
 XC credential source: [Private credential file or inherited environment; never paste secrets]
 SSH: [None by default; optional public key and narrowly scoped source CIDRs]
+CE boot disk: [120 GB pd-balanced default; increase for current image or workload requirements]
+Prompt provenance: [Exact canonical prompt file/attachment or independently supplied full SHA256 for checkpointing]
 
 Exclude HA, workload VMs, load balancers, origin pools, Windows VM provisioning,
 and changes to unrelated infrastructure. Do not copy reference Terraform or
@@ -32,10 +44,38 @@ identify a resume, but never adopt or remove unowned resources.
 
 ## Read-only discovery
 
+For a clean-room qualification iteration, start a fresh native chat in a new
+empty workspace and verify its inventory before any setup. Supply only this
+canonical prompt and current customer inputs; do not copy earlier Terraform,
+plans, state, checkpoints or remediation hints into the new run. Preserve prior
+attempts privately. Verify prior task-owned deployment resources are absent
+before starting another deployment; uncertainty blocks that iteration. Existing
+credentials, the configured profile and approved tools may remain outside the
+workspace, but reverify identities and discover the latest provider each time.
+Do not clear an existing workspace or delete unrelated resources to make it clean.
+A requested resume is a separate workflow and preserves its checkpoint/ownership.
+
 Discover the operating system, architecture, shell, available native commands,
-Terraform version (at least 1.5), JSON/HTTP/archive/SHA256 tooling, and credential
-mechanisms. Select commands appropriate to the discovered environment rather
-than assuming a shell, operating system, harness, plugin or tool name. Never
+Terraform version (at least 1.5), terraform-docs availability/version,
+JSON/HTTP/archive/SHA256 tooling, and credential
+mechanisms. Check terraform-docs before proposing its installation. If installed,
+include docs/terraform.md generation in approved file preparation by default,
+without a separate documentation-choice question. If missing, first ask whether
+the user wants generated docs, explaining that yes requires installing
+terraform-docs as part of local setup. Continue independent read-only checks
+while awaiting that choice. Yes includes verified installation in the setup plan;
+no skips installation and docs generation without blocking CE deployment. Respect
+an explicit opt-out and retain the choice on resume; do not ask again or silently
+install it. Planning itself never creates docs or installs tools. Select commands appropriate to the discovered environment rather
+than assuming a shell, operating system, harness, plugin or tool name.
+Verify the shell actually used by the agent's terminal tool. Run a harmless
+multiline output check and confirm complete output and exit status before long
+commands. macOS Bash 3.2 and shell wrappers can corrupt multiline input or lose
+tool output. Prefer an already-installed Bash 5+ or another verified native shell;
+use task-local clean startup configuration when hooks interfere. Do not change
+the user's normal shell/profile or install a shell during planning. Lost output
+is UNKNOWN, not success; repair the terminal and rerun affected checks without
+changing identities, repeating installations or resetting deadlines. Never
 print credential values, even while checking whether a variable is present.
 Report only presence, identity where needed, status and redacted evidence.
 Load credential sources only for named-variable presence checks and authenticated
@@ -43,13 +83,38 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
+During planning, create no temporary scripts, HTTP response files, diagnostic
+files or output redirections, inside or outside the workspace. Perform checks
+and parse responses in memory. A file-reader or search tool that returns
+credential bytes is disclosure, even if you never quote those bytes afterward.
+If the available planning tools cannot make authenticated requests privately,
+report the affected gates as UNKNOWN and pause rather than reading credentials
+into the conversation or inferring a grant from incomplete evidence.
+
+Access tokens and API keys must never appear in process command arguments.
+This includes curl -H headers, query URLs, --data-urlencode, and shell-variable
+expansion into command arguments. Capture generated tokens privately and issue
+HTTP requests inside the same process, using an HTTP library with authorization
+held in memory. Disable tracing and return only selected non-secret metadata.
+Do not use curl output files or shell pipelines to verify token identity.
 
 Verify the active GCP identity and project, API access, and Terraform Application
 Default Credentials independently of CLI login. Do not print access tokens.
 Use the selected GCP identity for Terraform and every GCP discovery, licence-probe,
 deployment and cleanup-verification command. Never silently fall back to the
 user's own compute permissions when a service account was requested.
-During planning, use only list/get/describe/help operations. Never execute create,
+If requested service-account impersonation is BLOCKED or UNKNOWN, do not run
+Compute Engine discovery as the human caller, even when labelled "caller
+evidence". This includes public-image/licence reads, subnets/routes, quotas,
+machine types and firewall inventories. Keep those checks pending until access
+is freshly verified. The caller may check its own identity and authentication,
+the requested service account's IAM access, Resource Manager project identity,
+and API enablement; private provider-release and XC discovery may continue.
+Return the blocked table and IAM-team request promptly, without trying another
+GCP identity. After the separate administrator grant, resume SA-scoped discovery.
+During planning, use only read-only list/get/describe/help operations, permission
+tests and short-lived authentication requests. These tests may use HTTP POST;
+they must never change IAM, APIs, resources or local authentication configuration. Never execute create,
 update, delete, reset or install commands to test syntax or permissions. Never
 assume a dry-run flag, background a mutation and kill it, or treat cancellation
 as proof that no resource was created. Licence acceptance can only be proved by
@@ -57,8 +122,26 @@ a probe after plan approval; report it as unverified during planning.
 Inventory all project subnets including secondary ranges; check proposed SLO/SLI
 ranges against them and each other. Confirm n2-standard-8 availability in the
 chosen zone and at least eight free regional N2 vCPUs plus disk/network quotas.
+Plan operating capacity, not just image bootability. Recheck F5's current Mesh
+requirements at https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-site-size-ref
+and its GCP deployment guide. The documented Mesh baseline is 80 GB minimum;
+this prompt defaults to 120 GB to reserve 50% above that minimum for software,
+logs and upgrades. This is an engineering headroom policy, not a claim that F5
+recommends 120 GB. Use at least max(120, ceil(1.5 * max(current F5 minimum,
+image diskSizeGb) / 10) * 10) GB, increasing further for measured workload needs.
+Verify pd-balanced support, selected-region storage quota and current pricing;
+Persistent Disk capacity is independent of the n2-standard-8 machine flavor.
+In us-east4, the catalog checked on 2026-10-23 lists zonal Balanced PD at
+USD 0.11/GiB-month: 120 costs about 13.20/month, 4.40 more than 80, excluding
+snapshots/taxes. Recheck for the actual region; never downsize to the image
+minimum merely to save that small difference.
 Check effective firewall policies: these VPC rules cannot override higher-level
-deny policies. Inspect existing state and exact-prefix GCP/XC resources to detect
+deny policies. In a fresh deployment, the new VPCs do not exist yet. Unavailable
+organization/folder policy inspection stays UNKNOWN with evidence; do not demand
+organization-wide IAM grants or infer a deny from an inspection 403. Include
+post-creation effective-firewall checks on the exact owned VPCs in the approved
+plan, before VM provisioning. A concrete incompatible policy is BLOCKED and must
+be resolved by its administrator; do not bypass it. Inspect existing state and exact-prefix GCP/XC resources to detect
 fresh, healthy-existing, interrupted, or orphaned runs. Keep existing ownership
 and names on resume. Flag missing access or ambiguous ownership before planning.
 
@@ -69,12 +152,30 @@ provides prebuilt releases; do not assume it is on the public Terraform registry
 or attempt to compile it. Environment tokens can shadow stored GitHub credentials;
 check presence without exposing values and select a verified authenticated identity.
 
-Enumerate all release pages. Select the newest non-draft release by publication
-time, INCLUDING prereleases. Resolve its exact version, platform zip filename,
-release asset identity, and published SHA256; do not use a loose constraint or
-implicitly exclude prereleases. Fail discovery clearly if the native platform
-asset or an exact checksum is absent. Current baseline checked on 2026-10-22 is
-v0.9.7; re-resolve at execution time. Unsupported assets are a prerequisite failure.
+At the start of every fresh run, discover the LATEST available preview release.
+Enumerate all authenticated release pages and select the newest non-draft release
+by publication time, INCLUDING prereleases. Do not use a version remembered from
+this prompt, a prior receipt, an existing mirror or a cached Terraform lockfile.
+Do not use GitHub's stable-only latest-release endpoint or choose an older release
+when the newest lacks a native asset. Missing native assets or an exact checksum
+block deployment with evidence; do not compile the provider or silently fall back.
+Resolve the selected release's exact version, native platform zip, asset identity
+and published SHA256. Recheck the release catalog before implementation; if a newer
+release appeared, return an updated plan with its schema and checksum for review.
+Then bind the reviewed saved plan to that selected exact version and immutable
+asset. This per-run binding prevents changes between plan and apply; it is not a
+fixed default for future runs. A resumed or existing deployment keeps its reviewed
+provider binding until a separate reviewed upgrade plan changes it.
+
+Disclose the node-local service policy DURING PLANNING using the selected latest
+release's documentation and schema. Do not infer behaviour from a negative field
+name: blocked_services_choice.block_all_services=true has been documented as
+"Enable all Node Local Services" (WebUI, SSH and DNS). Verify that interpretation
+for the selected release and explain the resulting policy. Preserve the reviewed
+policy; GCP SSH access still defaults to none. Confirm the selected schema before
+deployment. Report any unresolved semantics before deployment approval, not
+after creation. Do not silently invert the choice or equate GCP SSH reachability
+with the XC node-local service policy; a different policy needs a reviewed plan.
 
 List f5xc-ce-crt-* images from f5-7626-networks-public, compare newest by name
 with newest by creation time, explain disagreements, and pin an approved full
@@ -82,31 +183,136 @@ image name and immutable identity. There is no CE image family. Inspect its
 licences read-only. A disk licence probe creates a resource and belongs only in
 the approved implementation plan. Check XC access with validated read-only
 responses; HTTP 200 alone does not establish a valid site or coverage.
+JWT registration-token inventory uses /register/namespaces/system/tokens, and
+exact token reads/deletion checks use that route plus the state-owned token name
+or ID. /config/namespaces/system/tokens is not this token route; its 404 does not
+prove token absence. Validate the actual register response and exact ownership.
 
 Ask only for missing inputs or material unresolved decisions. Give checked
 recommendations; do not ask again for values already supplied. Never request
 that secrets be put in chat. A credential file must be private, outside the
 Terraform directory, and loaded into every command that needs it without logging.
 
+## GCP IAM preflight and administrator handoff
+
+Before checking permissions, identify the actual caller principal, requested
+Terraform service account and its owning project, deployment project, explicit
+quota project and credential method. The human running Terraform and an optional
+identity attached to the VM are different. This recipe requires no VM service
+account; do not attach one merely to run Terraform as a service account.
+
+Return one prerequisite table in the conversation, without creating workspace
+files (including plan.md). Every row has gate, PASS/BLOCKED/UNKNOWN, reason and
+evidence, caller, target resource, responsible team, next action and UTC observation
+time. The status cell must be exactly PASS, BLOCKED or UNKNOWN, with no qualifier.
+Do not introduce PARTIAL or another status. Put passing subchecks and pending
+subchecks in the evidence column. For each gate, a validated missing requirement
+makes it BLOCKED; otherwise an unverified required check makes it UNKNOWN; PASS
+requires every required check to pass. In particular, caller identity alone cannot
+pass identity selection before the effective Terraform identity is verified, and
+enabled APIs cannot pass the API/quota gate while capacity is unchecked.
+Never include tokens, key contents or complete IAM policies. The five gates:
+1. Identity selection: verified caller and effective Terraform identity, requested
+   service account/project, deployment project and credential method agree.
+2. Impersonation access: the verified caller has iam.serviceAccounts.getAccessToken
+   on the exact requested service account, and a short-lived token request works.
+   For direct ADC/key authentication, explicitly report impersonation not used.
+3. Deployment permissions: the selected Terraform identity has the needed
+   create/read/update/delete permissions for instances, disks, VPC networks,
+   subnets, firewall rules, routers and NAT in the deployment project. Include
+   operation polling, image use and external image read access. If a VM identity
+   is explicitly requested, separately test iam.serviceAccounts.actAs on it.
+4. APIs/quota project: Compute Engine, IAM and IAM Credentials APIs are enabled
+   where needed, and the actual quota-project identity has
+   serviceusage.services.use. Independently inspect regional quotas and machine
+   availability; API availability alone does not pass capacity checks.
+5. CLI/ADC authentication: independent authenticated read-only requests verify
+   both paths use the selected identity. Expired auth, conflicting credential
+   sources, double impersonation or unverified ADC identity cannot pass.
+
+Use resource-specific testIamPermissions authenticated as the identity being
+checked: POST https://iam.googleapis.com/v1/projects/-/serviceAccounts/EMAIL:testIamPermissions
+with permissions=["iam.serviceAccounts.getAccessToken"] using the caller; POST
+https://cloudresourcemanager.googleapis.com/v1/projects/PROJECT:testIamPermissions
+with the exact deployment permissions using the Terraform identity; POST
+https://compute.googleapis.com/compute/v1/projects/f5-7626-networks-public/global/images/IMAGE/testIamPermissions
+with permissions=["compute.images.useReadOnly"] using that identity for the exact
+resolved CE image; and the same project endpoint for serviceusage.services.use in the explicit quota project.
+Keep bearer tokens only in private process memory. Verify identities through an
+independent authenticated identity request, not the requested account name alone.
+Prefer POST https://oauth2.googleapis.com/tokeninfo with an application/x-www-form-urlencoded
+access_token body assembled inside the private process. Validate a non-empty
+email matching the expected caller/service account. Public OAuth/OpenID identity
+requests must omit x-goog-user-project; applying a GCP quota header to the OpenID
+userinfo endpoint can return 403 even when impersonation and token generation
+work. Keep the explicit quota header for GCP resource/API requests. A failed
+identity endpoint is UNKNOWN, not evidence that Token Creator is missing; inspect
+its HTTP status/shape instead of spending the propagation budget on a wrong request.
+Test short-lived impersonation with the IAM Credentials generateAccessToken
+endpoint with cloud-platform AND userinfo.email scopes so tokeninfo can verify
+the service-account email; privately validate accessToken/expireTime and use it for read-only
+compute requests. Check API states through authenticated Service Usage GETs.
+A successful permission-list response must have a valid JSON object and a list
+of permission strings (an omitted permissions field means none granted). Missing
+requested permissions in that validated response are BLOCKED. A generic 403,
+unreadable policy, conditional-policy uncertainty, invalid response, transport
+failure or unavailable identity evidence is UNKNOWN with its own next action;
+never turn a generic 403 into a Token Creator diagnosis. Policy bindings are
+supporting evidence only: narrow and project-level grants can both work; evaluate
+conditions, deny policies and current effective access rather than inferring
+success from a visible binding. Recheck missing evidence before dependent work.
+
+External-image exception: a readable shared/public image can return a valid empty
+images.testIamPermissions result, including for compute.images.get even though
+images.get works. Keep that discrepancy UNKNOWN; neither metadata read nor the
+empty permission list alone establishes image-use access. Validate the exact
+image name, immutable ID and READY state through authenticated images.get. Do
+not invent a publisher IAM grant or require a customer to administer the public
+image project. If caller/impersonation, deployment-project permissions, APIs and
+CLI/ADC checks pass and only image-use/licence or prospective-policy evidence is
+unresolved, return a reviewable phased plan. It may include a separately approved
+temporary licence probe and owned-network policy checks before VM provisioning.
+This is approved implementation, never a planning mutation. A successful disk
+creation from the exact pinned image as the selected identity proves image-use
+and licence capability; record the evidence and verify probe deletion before
+passing that gate. A failure pauses dependent deployment with its actual error,
+without a guessed grant, unreviewed retry or identity fallback.
+
+The intended caller needs impersonation permission ON the requested service
+account. Granting Token Creator to the service account itself does not grant the
+human caller access. roles/iam.serviceAccountTokenCreator on that service account
+is a standard option; a correct project-level grant in its owning project can
+also work, while a service-account-level grant is narrower. Token Creator does
+not grant deployment permissions. Preserve approved custom roles. Describe
+roles/compute.admin only as a broad option requiring administrator approval;
+never silently recommend Owner or Editor. roles/iam.serviceAccountUser grants
+actAs for an attached VM identity, not getAccessToken for impersonation.
+
+For blocked access, return ONE private, copyable request for the customer's IAM
+team in the conversation, containing the verified caller principal, exact target
+service account and owning project, deployment/quota projects, missing permission
+or approved role, observed sanitized failure/time and recheck steps. For verified
+missing impersonation include this administrator command with actual selected
+values, properly quoted for the discovered shell:
+gcloud iam service-accounts add-iam-policy-binding SERVICE_ACCOUNT_EMAIL --project=SERVICE_ACCOUNT_PROJECT --member=CALLER_PRINCIPAL --role=roles/iam.serviceAccountTokenCreator
+State that a binding to the service account itself is insufficient. For compute
+or API blockers ask the administrator to retain approved custom roles or enable
+only required APIs; do not invent a broad grant command. UNKNOWN requests ask for
+investigation of the specific evidence failure, not an assumed IAM grant.
+Do not send the request automatically or ask the sales engineer to change IAM.
+Do not create service accounts/keys, grant roles, enable APIs or alter organization
+policies as part of CE deployment. IAM administration is a separate approval and
+operator step from local authentication setup and from deployment approval.
+
+Pause dependent work until administrator confirmation. Only then recheck effective
+access every 30 seconds, for at most ten minutes from confirmation, including
+restarts. Retain sanitized observations privately after local setup approval;
+before that keep the table/request in the conversation. A timeout preserves
+failures and pauses: it does not prove a grant is wrong. Group membership changes
+may take longer. Do not repeat an IAM change or restart the propagation budget.
+After access works, refresh all five gates before proposing deployment.
+
 ## GCP service-account authentication
-
-When a service account is requested, recommend impersonation with short-lived
-credentials. Distinguish its owning project from the target deployment project.
-The caller needs roles/iam.serviceAccountTokenCreator on that service account;
-the service account separately needs create/read/update/delete permissions for
-the target project's instances, disks, networks, subnets, firewall rules, routers
-and NAT. roles/compute.admin is a broad starting role an administrator may approve;
-prefer a customer-approved custom role when available. Token Creator alone does
-not grant compute permissions. roles/iam.serviceAccountUser is needed only if
-attaching a service account to a VM; it does not permit impersonation. This recipe
-does not require an attached VM service account. Do not add one merely to run
-Terraform as a service account.
-
-Check Compute Engine and IAM Service Account Credentials API availability and
-any quota-project serviceusage.services.use requirement for the selected ADC
-configuration. Report missing permissions/APIs as prerequisites for the customer
-administrator. Do not create service accounts or keys, grant IAM roles, enable
-APIs, or alter organization policies as part of this CE deployment.
 
 Inspect existing authentication read-only. If setup is missing, present the
 authentication prerequisite plan and wait for explicit approval before login,
@@ -143,13 +349,56 @@ Verify with authenticated read-only project/compute queries under the selected
 identity and a private ADC-backed request for Terraform; never display generated
 access tokens. Record method, effective service-account email, target project and
 any quota project. If verification fails, stop dependent work and report the
-specific missing prerequisite; do not test permissions with resource creation.
+specific missing prerequisite; do not create resources during IAM preflight.
+The separately reviewed image/licence probe described above is an explicit
+implementation phase, not permission testing during planning.
 GCP authentication is separate from private GitHub provider-release access and
 the XC API token. A private .env may supply F5XCProvider_URL and
 F5XCProvider_API_TOKEN; .env files are not loaded automatically by Terraform.
 Load only the required named values privately into each process that needs them.
 Keep customer-owned service accounts, IAM bindings and credential sources after
 CE teardown; they are not owned resources of this Terraform state.
+
+## Private checkpoint and same-session resume
+
+During native planning, return prerequisites and the IAM-team request in chat;
+create no workspace files, downloaded helper or plan.md. This prompt contains
+sufficient instructions to perform the checks without downloading a helper.
+After explicit local setup approval, save an owner-only checkpoint outside the
+workspace with the SHA256 of this exact prompt, caller, Terraform service account,
+service-account project, deployment/quota projects, credential method, completed
+gate observations, outstanding administrator requests, scoped approvals,
+installation receipts and the original propagation deadline. Store no token, key
+contents, complete IAM policy, credential-bearing response or raw transcript in
+it. Raw failures belong only in separate private evidence with secret handling.
+A checkpoint-only approval authorizes ONLY that checkpoint. It does not authorize
+native session-memory plan files, workspace plan.md, scripts or other artifacts.
+Keep the plan and IAM-team request in the conversation until their own approved
+file-creation phase; private storage or storage owned by an agent is not an exemption.
+Copy the five complete prerequisite rows into the checkpoint, including status,
+reason/evidence, caller, target resource, owner, next action and observation time.
+PASS rows also retain a responsible team and recheck action; required metadata
+must not be replaced with dashes or omitted.
+Save the initial pending gate rows, selected identities, approvals and original
+confirmation deadline BEFORE starting propagation polling, then update that
+checkpoint with fresh observations. Do not wait until access succeeds to make
+the deadline durable.
+Image-use uncertainty keeps the aggregate deployment-permissions gate UNKNOWN;
+do not record that gate PASS while an auxiliary image check remains unresolved.
+Hash the entire exact canonical prompt, never its title, first paragraph or an
+excerpt. Use the supplied exact file/attachment bytes or independently verified
+full hash. If provenance is missing, record hash UNKNOWN and resolve it before
+calling the checkpoint complete; continue independent read-only discovery.
+
+On resume reload the checkpoint and reverify effective access and both auth paths;
+"the grant is done" is confirmation to recheck, never proof of access. Changes to
+caller, service account, either project, quota project or credential method
+invalidate affected observations and dependent deployment approval; a changed
+prompt hash requires review against the revised scope. Recheck all five gates
+before deployment. Preserve installation receipts: do not repeat approved
+installations on session restart, silently change identities or deploy
+automatically. IAM confirmation, local setup approval and scoped deployment
+approval remain separate. Passing authentication never authorizes deployment.
 
 ## Plan and approval boundary
 
@@ -159,30 +408,78 @@ cost and teardown. Include the GCP authentication method, effective service
 account if used, and separately approved authentication setup. Give objective
 acceptance criteria and ordered implementation,
 verification and recovery steps. List proposed installations, file creation,
-licence probe, and deployment explicitly. Planning must make no deployment changes.
+licence probe, and deployment explicitly. Identify the active IDE workspace
+(or current working directory in a terminal client). Default to relative paths:
+terraform/ for .tf files and saved Terraform plans, and docs/terraform.md when
+documentation is enabled. Include the documentation choice and any required tool
+installation in the plan. Generated files must appear in the workspace explorer.
+If the workspace is not private, propose
+an owner-only workspace and opening it before implementation. Do not silently
+write Terraform into an unrelated sibling or scratch directory hidden from the
+active workspace. Credentials stay outside the Terraform directory; the private
+checkpoint and provider scratch may remain outside the workspace. Planning must
+create no workspace files and make no deployment changes.
 Stop after the plan. Require explicit approval before any of those mutations.
 
 ## Approved implementation
 
 After approval, announce each phase and expected wait, then execute the scoped
-plan without asking for routine reconfirmation. Preserve failures and private raw
-evidence. Download the selected release asset and checksums into a private task
+plan without asking for routine reconfirmation. Create the approved Terraform
+directory at ./terraform relative to the approved active workspace. Create ./docs
+only when documentation is enabled. Verify the generated files are visible in its explorer.
+Preserve failures and private raw evidence. Download the selected release asset and checksums into a private task
 scratch directory. Match exactly one checksum entry for the exact zip filename,
 verify SHA256 before extraction or installation, and reject missing, duplicated,
 malformed or mismatched checksums. Install into Terraform's native local plugin
 mirror for the resolved version and platform. Pin required_providers f5xc to that
-EXACT version. Record other resolved provider versions in the lockfile.
+EXACT version before init; reject an absent/loose constraint or an older cached
+lockfile. Never copy a fixed provider version from the fallback template. Record
+other resolved provider versions in the lockfile.
 
 Create a uniquely named temporary disk from the pinned image in the selected
-project/zone to verify marketplace licence acceptance. Record its ownership and
+project/zone to verify image-use capability and marketplace licence acceptance.
+The probe disk must be at least the pinned image's diskSizeGb; omit an explicit
+size to use GCP's image minimum, or choose the approved CE boot-disk size. This
+immediately deleted probe is not the operating CE disk and needs no upgrade reserve.
+Use this scoped phase to resolve the readable-public-image permission-test
+discrepancy when recorded in the approved plan. Record its ownership and
 prove deletion even after a failed probe. Never delete an unrelated probe disk.
 A failed marketplace acceptance prerequisite requires the customer's acceptance
 of the terms before continuing.
 
+When prospective policy evidence was UNKNOWN, first create only random_id and
+the four owned network/subnet resources (five resources total, including their
+naming dependency) using an inspected saved plan, then validate effective
+firewalls on those exact VPCs. Stop on a concrete incompatible inherited rule.
+Inspect the subsequent saved plan for the remaining ten resources and apply
+only it. Both plans together must match the approved fifteen-resource scope;
+never use unreviewed targets or recompute a plan at apply time. Record each
+saved-plan digest and the actual executor/identity. Optional SSH adds one resource
+to the second plan, for sixteen total. If policy evidence was
+already sufficient, use the single complete saved plan instead.
+
 Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
 network.tf, firewall.tf, site.tf, token.tf, instance.tf and outputs.tf, plus private
-input values and an active-session registration poller. Keep configuration,
-state, saved plans, provider schemas, VM metadata and raw responses private.
+input values and an active-session registration poller. Keep the .tf files,
+private tfvars and Terraform state in ./terraform. Save Terraform plan binaries
+and their private review JSON under ./terraform/plans/ (or directly under
+./terraform), so the plan files are visible in the active workspace. Do not move
+them into a sibling plans directory or an unrelated temporary folder because they
+are sensitive: use owner-only directories/files instead. Provider scratch,
+checkpoint and raw HTTP/VM evidence may stay in private storage outside the
+workspace. Keep configuration, state, plans, schemas and raw evidence private.
+When documentation is enabled, after fmt/validate use terraform-docs to generate
+docs/terraform.md from the terraform/ module. Reuse the installed tool without
+another question; install a missing tool only when the user chose docs and local
+setup is approved. Verify its native download/checksum and retain the receipt.
+Keep generated docs in sync with configuration changes. Include requirements,
+providers, resources, inputs and outputs; never include credential values,
+registration tokens, raw state, IAM policies or saved-plan contents. Verify the
+Terraform directory and enabled documentation before deployment. If docs were
+declined, record them as skipped by choice, not a failure, and do not create an
+empty docs directory. When checkpoint saving is approved, retain the docs choice,
+tool availability and installation approval so resume does not repeat the question.
+Retain configuration and any generated docs through teardown for review.
 
 Use random_id with byte_length=3 and local.name="${var.name_prefix}-${random_id.suffix.hex}".
 Derive every owned name and a task-specific CE tag from local.name. Scope every
@@ -247,8 +544,15 @@ for validity, resume and recovery decisions; lifetime can vary with server polic
 Cloud-init writes only token: <JWT> in /etc/vpm/user_data, owned by root with 0600
 permissions. Do not use SMSv1 /etc/vpm/config.yaml, Vpm/Kubernetes nesting,
 certified_hardware or a registration_approval resource.
+Include read-only startup disk diagnostics (df and lsblk, where supported) in
+the existing cloud-init, reporting disk/partition/filesystem size and free space
+for / and persistent data/log paths such as /var, /var/lib and /var/log,
+to serial output without printing credentials or /etc/vpm/user_data. Do not
+modify partitions or filesystems with guessed commands. Check the image's
+supported root-filesystem expansion rather than assuming a larger GCP disk
+automatically becomes usable guest capacity.
 
-Create one n2-standard-8 VM, can_ip_forward=true, 80 GB pd-balanced boot disk,
+Create one n2-standard-8 VM, can_ip_forward=true, 120 GB pd-balanced boot disk,
 pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
 has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
 so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
@@ -281,6 +585,13 @@ ERROR_IN_ORCHESTRATION is a failure. Bound transient retries within the original
 and never return success on timeout. Preserve raw evidence privately and report
 which completion gates remain unmet.
 
+An initial ONLINE response can briefly regress to PROVISIONING during registration.
+Require two consecutive valid ONLINE observations at least 30 seconds apart before
+passing registration. A pending state or response failure clears this stability
+window; continue read-only polling within the ORIGINAL VM-creation deadline.
+Check that deadline before requests and before accepting a response. Never reset
+the budget, redeploy or declare completion from the first ONLINE sample alone.
+
 After 60 minutes stop polling and perform at most 10 minutes of read-only diagnostics:
 owned VM status and serial logs, NAT mappings, effective firewall rules, site/node
 responses and JWT age/validity without exposing its value. Do not retry indefinitely.
@@ -290,16 +601,30 @@ ignored user-data: rotating a token alone will not update VM metadata, and a res
 can reuse stale data. Explain exact replacement/metadata effects and require
 approval of recovery changes before executing them. Keep the failed attempt.
 
-Completion requires evidence for ALL three gates:
-1. Validated site_state=ONLINE.
+Completion also requires the approved terraform/ files and, when documentation
+is enabled, docs/terraform.md to be visible in the active workspace and free of
+credential values. An explicit docs opt-out does not block completion. Deployment completion requires evidence for ALL three gates:
+1. Two consecutive validated site_state=ONLINE observations at least 30 seconds apart.
 2. /config/namespaces/system/securemesh_site_v2s/<site> reports exactly the expected
    node's ens4=site_local_network (SLO, primary=true) and
    ens5=site_local_inside_network (SLI, primary=false), matched to the owned VM NICs.
+   Read spec.gcp.not_managed.node_list[].interface_list[]: the role is under
+   network_option.site_local_network or network_option.site_local_inside_network,
+   with name, ethernet_interface.device/mac and is_primary alongside it. Do not
+   look for the role at the interface's top level or assume a reported IP field.
 3. A POST-registration terraform plan -detailed-exitcode returns 0. Exit 1 is error;
    exit 2 is drift. Never apply that drift blindly or call an earlier clean plan success.
+   Recheck ONLINE after this plan before declaring completion. A regression resumes
+   the original bounded polling and requires fresh NIC and post-registration plan
+   evidence after stability returns; an expired budget pauses for bounded diagnostics.
 
 Record connected_re separately from registration; validate its response shape and
 report observed RE identities/count without equating ONLINE with connectivity.
+Independently verify the actual boot disk has the approved capacity/type and
+inspect supported node telemetry or the startup serial diagnostics for usable
+filesystem size and free space. Report provisioned and guest-usable capacity
+separately; diskSizeGb alone does not prove upgrade headroom. Missing guest
+evidence stays UNKNOWN and must not be described as a successful upgrade test.
 Empty sli_address is not a reliable SLI check; inspect node_list instead.
 Summarize met/unmet gates, timestamps, immutable provider/image identities, total
 elapsed time, cost of keeping the VM and owned teardown instructions.
@@ -314,3 +639,11 @@ without the exact object proves absence; transport errors, malformed responses o
 empty unvalidated output do not. Bound XC deletion checks and preserve failures.
 Do not clean by broad prefix or delete unrelated resources. Report cleanup as
 incomplete until all owned resources and the XC site are independently absent.
+If a destroy command loses transport while polling an operation, it does not
+prove deletion failed. Preserve the failure, re-read the exact resource and
+operation using the selected identity, then create and inspect a NEW saved
+destroy plan for only the remaining state-owned resources. Refresh may reconcile
+an object already deleted in GCP. Apply only the new inspected plan; never replay
+the stale original plan, remove unverified state entries or broaden cleanup.
+Existing scoped teardown approval covers this convergence; stop on authentication,
+ownership or scope uncertainty and keep all evidence.

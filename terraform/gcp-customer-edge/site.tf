@@ -24,7 +24,9 @@ resource "f5xc_securemesh_site_v2" "ce" {
     }
   }
 
-  # Confirm service semantics against the selected provider and API reference.
+  # Verify "Enable all Node Local Services" against the selected latest release.
+  # Disclose that policy during planning; the field name does not mean disabled.
+  # Confirm selected-release semantics; GCP SSH access is approved separately.
   blocked_services_choice = {
     block_all_services = true
   }

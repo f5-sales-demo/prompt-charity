@@ -3,7 +3,9 @@ title: Deploy a Customer Edge in GCP
 description: Plan, approve, deploy and verify one dual-interface F5 Distributed Cloud Customer Edge.
 ---
 
+import { createHash } from 'node:crypto';
 import { Code } from '@astrojs/starlight/components';
+import CanonicalCopyData from '../../../../components/CanonicalCopyData.astro';
 import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 
 ## Before you begin
@@ -11,20 +13,26 @@ import prompt from '../../../../_data/prompts/gcp-customer-edge.txt?raw';
 Use an existing authorized test GCP project and F5 Distributed Cloud tenant with permission to create and delete a site. You need GCP CLI authentication and separate Terraform Application Default Credentials, sufficient N2 quota, and Terraform 1.5 or newer. Your agent discovers the host and chooses appropriate native commands.
 
 **Using a GCP service account:** select impersonation in the prompt's GCP authentication input and supply the full
-service-account email and owning project. The single prompt includes prerequisite checks, approved local authentication
-setup, matching Terraform/CLI identities and a private JSON-key alternative when required by your organization.
+service-account email and owning project. The single prompt returns five IAM gates with evidence, owners and next actions, plus a private request for your IAM
+team when access is blocked. It pauses for administrator confirmation, rechecks access for at most ten minutes and
+keeps IAM administration, approved local authentication setup and CE deployment as separate approvals. A private
+checkpoint supports resume after setup approval; planning creates no workspace files.
 Impersonation needs Token Creator on the service account and separate deployment permissions in the target project.
 Administrator IAM/API changes are prerequisites, outside the CE deployment. Keep credentials out of chat.
 
 **Private provider access comes first:** obtain an invitation to
 [F5Networks/terraform-provider-f5xc-preview](https://github.com/F5Networks/terraform-provider-f5xc-preview) and
 authenticate to its releases. An inaccessible private repository may return a misleading 404. The prompt resolves the
-newest non-draft release, including prereleases, and rejects unsupported platform assets. The release checked on
-2026-10-22 is `v0.9.7`.
+newest non-draft release on every fresh run, including prereleases, and rejects unsupported platform assets. It uses no
+fixed release default. After discovery and review, the saved deployment plan binds the selected exact version and
+checksum so they cannot change between plan and apply. Existing deployments require a reviewed upgrade plan.
 
 ## Expected architecture
 
 One `n2-standard-8` instance has separate SLO (outside) and SLI (inside) VPCs/subnets. SLO Cloud NAT supplies outbound access; the VM has no public IP. Secure Mesh Site v2 uses JWT registration. NIC order is explicit: `ens4 → SLO`, `ens5 → SLI`. The default saved Terraform plan creates 15 resources, or 16 with optional SSH.
+The boot disk defaults to 120 GB `pd-balanced`, reserving 50% above F5's 80 GB Mesh minimum for software, logs and upgrades.
+Planning increases this for newer requirements and checks quota/cost. Guest-usable space is verified separately from
+the GCP disk's provisioned size.
 
 Supply your project, region/zone, unique short name prefix, two independently checked non-overlapping private `/26`
 ranges, authorized tenant API URL and private credential source. SSH defaults to none. Credentials must stay outside
@@ -36,13 +44,19 @@ Enable native planning mode in your chosen agent, then copy this entire block. R
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
 
-<Code code={prompt} lang="text" title="Complete customer prompt" />
+<div id="gcp-customer-edge-canonical-code">
+  <Code code={prompt} lang="text" title="Complete customer prompt" />
+</div>
+<CanonicalCopyData source={prompt} target="gcp-customer-edge-canonical-code" />
 
 ## Timing and completion
 
 Allow roughly 30-50 minutes, usually 20-45 minutes for registration and upgrades. Cold downloads may take longer. The agent polls every 30 seconds with visible elapsed time and keeps the session active. After 60 minutes it preserves evidence and performs bounded diagnostics; a timeout or invalid response cannot pass.
 
-Completion requires `ONLINE`, verified `ens4 → SLO` and `ens5 → SLI` roles, and a post-registration `terraform plan -detailed-exitcode` returning zero. Regional Edge connectivity is recorded separately. Do not accept a pending status or an earlier clean plan as completion.
+Completion requires consecutive validated `ONLINE` observations at least 30 seconds apart, verified `ens4 → SLO`
+and `ens5 → SLI` roles, and a post-registration `terraform plan -detailed-exitcode` returning zero. Recheck `ONLINE`
+after that plan; a regression resumes the original bounded polling. Regional Edge connectivity is recorded separately.
+Do not accept a pending status or an earlier clean plan as completion.
 
 ## Teardown and fallback
 
@@ -52,14 +66,28 @@ Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/operations/gc
 
 ## Qualification status
 
-The current prompt includes explicit GCP service-account authentication instructions. Those authentication paths have
-been checked against Google's documentation but have not been live-qualified through the three harnesses.
+The current prompt includes an evidence-based IAM preflight, administrator handoff and private checkpoint protocol.
+Readable-public-image permission uncertainty is resolved by a separately approved image/licence probe. New-network
+policy checks can use phased saved plans before VM provisioning; terminal and prompt-hash checks preserve resume evidence.
+Deterministic fixtures cover permission failures, uncertain responses, propagation deadlines and credential handling.
+Two consecutive clean-room Mac VS Code GitHub Copilot Chat runs passed against the current canonical hash on
+2026-10-24, using Claude Opus 5.5 in the Local extension host. Each started in native Plan mode with an empty workspace,
+paused for missing caller impersonation, resumed the same session after a separate operator grant, and then completed
+reviewed deployment, stable ONLINE/NIC checks, post-registration zero drift and independently verified teardown.
+Both reused installed terraform-docs and kept configuration and saved plans in the visible workspace. Temporary IAM
+grants and the task-owned service account were removed after both runs. These receipts qualify this prompt hash and
+record the exact selected releases; each new deployment still discovers the current release and rechecks prerequisites.
+
+| Harness | Current-hash run | Gates and cleanup | Sanitized evidence |
+| --- | --- | --- | --- |
+| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Clean-room 1 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-1.json) |
+| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Clean-room 2 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-2.json) |
 
 The earlier prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode,
 received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
 before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
 
-Current canonical SHA256: `7ae7d8c92736d9158e205d8f84fdf65c6ccecc1b6b74f391bf5f936108dafbec`.
+Current canonical SHA256: <code>{createHash('sha256').update(prompt, 'utf8').digest('hex')}</code>.
 
 Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
 
