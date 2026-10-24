@@ -88,7 +88,7 @@ class SupportTests(unittest.TestCase):
                 {"name": "terraform-provider-f5xc_0.9.7_SHA256SUMS"},
             ],
         }
-        newest = {
+        newest: dict = {
             "tag_name": "v0.9.8-rc.1",
             "published_at": "2026-02-01",
             "draft": False,

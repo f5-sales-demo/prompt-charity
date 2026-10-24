@@ -202,8 +202,8 @@ install -m 0755 "extracted/terraform-provider-f5xc_v$VERSION" "$DEST/"
 
 Reject missing/duplicate/malformed checksums and checksum mismatches before extraction or installation. Inspect archive
 members for unsafe paths. Handle platform-specific executable permissions/quarantine using native tools as needed. Pin
-`versions.tf` to `= <the exact resolved version>` before init. The template deliberately supplies no fixed f5xc version;
-discovery must add the exact constraint. Recheck the catalog before implementation and review an updated plan if a
+`versions.tf` to `= <the exact resolved version>` before init. The template uses an unresolved constraint instead of a
+fixed release default; discovery must replace it with the exact selected latest preview version before init. Recheck the catalog before implementation and review an updated plan if a
 newer release appeared. Reject an absent/loose constraint or an older cached lockfile. Verify the selected release's
 schema and revalidate before using it; keep this binding through saved-plan apply and teardown.
 
