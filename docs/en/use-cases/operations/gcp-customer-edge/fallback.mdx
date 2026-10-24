@@ -80,7 +80,8 @@ python3 gcp-ce-support.py iam-preflight \
   --image-name '<resolved-exact-f5xc-ce-crt-image-name>'
 ```
 
-Exit 0 means all IAM/authentication gates passed; exit 2 means prerequisites remain blocked or unknown. Independently
+Exit 0 means all prerequisite gates passed; exit 2 means prerequisites remain blocked or unknown. The helper keeps
+regional capacity UNKNOWN until equivalent native zone, machine and quota checks verify it as the selected identity. Independently
 check the selected image, regional capacity, CIDRs and XC/private-provider access before deployment. Explicit key sources
 that this helper cannot independently verify remain unknown and require equivalent native credential-aware checks.
 
@@ -218,7 +219,8 @@ a failed probe as approval to alter marketplace policy.
 ## 4. Write the nine Terraform files
 
 After approval, use `terraform/` and, when enabled, `docs/` relative to the active private workspace. Confirm the
-Terraform files and any generated `docs/terraform.md` appear in its explorer. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
+Terraform files, saved plan binaries and review JSON under `terraform/plans/`, and any generated `docs/terraform.md`
+appear in its explorer. Keep these artifacts private with permissions instead of hiding them in a sibling directory. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
 creates no workspace files. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with

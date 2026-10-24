@@ -460,8 +460,14 @@ already sufficient, use the single complete saved plan instead.
 
 Write nine grouped Terraform files: versions.tf, providers.tf, variables.tf,
 network.tf, firewall.tf, site.tf, token.tf, instance.tf and outputs.tf, plus private
-input values and an active-session registration poller. Keep configuration,
-state, saved plans, provider schemas, VM metadata and raw responses private.
+input values and an active-session registration poller. Keep the .tf files,
+private tfvars and Terraform state in ./terraform. Save Terraform plan binaries
+and their private review JSON under ./terraform/plans/ (or directly under
+./terraform), so the plan files are visible in the active workspace. Do not move
+them into a sibling plans directory or an unrelated temporary folder because they
+are sensitive: use owner-only directories/files instead. Provider scratch,
+checkpoint and raw HTTP/VM evidence may stay in private storage outside the
+workspace. Keep configuration, state, plans, schemas and raw evidence private.
 When documentation is enabled, after fmt/validate use terraform-docs to generate
 docs/terraform.md from the terraform/ module. Reuse the installed tool without
 another question; install a missing tool only when the user chose docs and local
