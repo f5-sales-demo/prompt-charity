@@ -400,10 +400,11 @@ cost and teardown. Include the GCP authentication method, effective service
 account if used, and separately approved authentication setup. Give objective
 acceptance criteria and ordered implementation,
 verification and recovery steps. List proposed installations, file creation,
-licence probe, and deployment explicitly. Identify the active IDE workspace and
+licence probe, and deployment explicitly. Identify the active IDE workspace
 (or current working directory in a terminal client). Default to relative paths:
 terraform/ for .tf files and saved Terraform plans, and docs/terraform.md for
-generated terraform-docs documentation. Both must appear in the workspace explorer. If the workspace is not private, propose
+generated terraform-docs documentation. Both must appear in the workspace explorer.
+If the workspace is not private, propose
 an owner-only workspace and opening it before implementation. Do not silently
 write Terraform into an unrelated sibling or scratch directory hidden from the
 active workspace. Credentials stay outside the Terraform directory; the private
@@ -416,8 +417,8 @@ Stop after the plan. Require explicit approval before any of those mutations.
 After approval, announce each phase and expected wait, then execute the scoped
 plan without asking for routine reconfirmation. Create the approved Terraform
 directory at ./terraform and documentation directory at ./docs relative to the
-approved active workspace. Verify the generated files are visible in its explorer. Preserve failures and private raw
-evidence. Download the selected release asset and checksums into a private task
+approved active workspace. Verify the generated files are visible in its explorer.
+Preserve failures and private raw evidence. Download the selected release asset and checksums into a private task
 scratch directory. Match exactly one checksum entry for the exact zip filename,
 verify SHA256 before extraction or installation, and reject missing, duplicated,
 malformed or mismatched checksums. Install into Terraform's native local plugin
