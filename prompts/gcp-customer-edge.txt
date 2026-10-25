@@ -703,7 +703,12 @@ Create one n2-standard-8 VM, can_ip_forward=true, 120 GB pd-balanced boot disk,
 pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
 has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
 so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
-Shielded VM features. VM lifecycle ignores metadata["user-data"] so rotating a
+Shielded VM features. Inspect the pinned image's guestOsFeatures. If it lacks
+UEFI_COMPATIBLE, omit shielded_instance_config entirely; an explicit all-false
+block can produce perpetual drift when the API omits unsupported settings.
+Do not hide that drift with ignore_changes or apply it repeatedly. Propose a
+scoped configuration-only removal and require a fresh no-change plan.
+VM lifecycle ignores metadata["user-data"] so rotating a
 JWT does not implicitly replace a healthy VM. Explicit depends_on must include
 the site, token and SLO NAT so the VM boots with working egress.
 
@@ -712,6 +717,15 @@ provider schema, and create a saved plan. Inspect the saved plan for the approve
 15/16 resources, exact project/zone/image, CIDRs, NIC order, firewall rules, lifecycle
 and absence of unrelated changes. Apply only that inspected saved plan; do not
 apply a recomputed plan. Stop and revise the plan if it exceeds approved scope.
+The registration token can make the entire VM metadata map unknown in a saved
+plan. Check the exact reviewed configuration and its saved-plan references for
+the required static keys, sensitive JWT .content and token-only bootstrap file.
+Record those checks as source-verified and deferred, not proven live values.
+Immediately after apply, privately verify the actual metadata, matching token,
+token-only /etc/vpm/user_data definition with root ownership and 0600 mode, and state sensitivity before
+polling. Missing source proof, unexpected references or known wrong values fail.
+Include durable registration-deadline and poll-state paths in artifact approval;
+write only those approved paths and request missing scope before creating a file.
 
 ## Registration and completion
 

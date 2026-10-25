@@ -258,6 +258,11 @@ CIDRs and image. Fill those inputs with checked customer values. No XC token bel
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
 
+The registration token can leave the entire VM metadata map unknown in a saved plan. Verify the reviewed source
+and saved-plan references, then require private live checks of the static keys, matching token-only bootstrap,
+root ownership, 0600 mode and state sensitivity immediately after apply. An unknown map does not waive those checks.
+Include durable registration-deadline and poll-state paths in artifact approval before writing them.
+
 Check terraform-docs first. If installed, generate `docs/terraform.md` during approved file preparation without another
 docs-choice question. If missing, first ask whether generated docs are wanted and explain that yes requires installing
 the tool as part of approved local setup. No skips installation and docs without blocking deployment; do not create an
@@ -266,6 +271,10 @@ regenerate after configuration changes, covering requirements, providers, resour
 credentials, raw state or plan contents. Retain the files and any generated docs through teardown for review.
 
 The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
+Inspect the pinned image's `guestOsFeatures`. When `UEFI_COMPATIBLE` is absent, omit `shielded_instance_config`
+entirely. An explicit all-false block can cause perpetual drift because the API omits unsupported settings.
+Resolve that with a reviewed configuration-only removal and a fresh no-change plan; do not hide it with lifecycle
+exclusions or repeatedly apply it.
 
 The operating CE uses a **120 GB `pd-balanced` boot disk by default**, rather than the source image minimum.
 [F5's sizing reference](https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-site-size-ref)

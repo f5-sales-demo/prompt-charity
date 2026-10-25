@@ -33,6 +33,8 @@ One `n2-standard-8` instance has separate SLO (outside) and SLI (inside) VPCs/su
 The boot disk defaults to 120 GB `pd-balanced`, reserving 50% above F5's 80 GB Mesh minimum for software, logs and upgrades.
 Planning increases this for newer requirements and checks quota/cost. Guest-usable space is verified separately from
 the GCP disk's provisioned size.
+Check pinned-image compatibility and omit Shielded VM configuration for non-UEFI images. Token-dependent metadata
+is checked against reviewed source before apply and verified privately from live values immediately afterward.
 
 Supply your project, region/zone, unique short name prefix, two independently checked non-overlapping private `/26`
 ranges, authorized tenant API URL and private credential source. SSH defaults to none. Credentials must stay outside
