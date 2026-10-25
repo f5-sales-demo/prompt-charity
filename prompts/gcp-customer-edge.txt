@@ -34,6 +34,12 @@ Authentication, installations, checkpoints, IAM administration, licence probes
 and deployment retain their separate approvals. Return the five prerequisite
 gates and private IAM-team request in chat even when planning documents are approved.
 After file-creation approval, enable only the writing tools needed for that scope.
+Planning-document approval never permits diagnostic captures, temporary files,
+backup copies or command-output files in any directory. Capture BOTH stdout and
+stderr in memory through returned tool output or subprocess pipes; never redirect
+them to filesystem paths during planning. Deleting or redacting a temporary file
+later cannot authorize its creation. Diagnose authentication errors using only
+non-secret categories/status from captured output, not a redaction pipeline.
 
 ## Objective and inputs
 

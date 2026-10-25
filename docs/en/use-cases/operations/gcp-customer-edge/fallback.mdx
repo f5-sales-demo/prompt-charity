@@ -106,7 +106,9 @@ After explicit local setup approval, save an owner-only checkpoint outside the w
 hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
 receipts and propagation deadline. Never save credential values or full policies.
 Checkpoint-only approval permits only that checkpoint, not a native session-memory `plan.md` or planning documents.
-Keep planning read-only and artifact-free by default. Before any native planning documents are created, offer a
+Keep planning read-only and artifact-free by default. Planning-file consent never permits temporary diagnostics,
+backups or stdout/stderr files. Capture both streams in memory and report only non-secret categories/status;
+redacting or deleting a capture later does not authorize creating it. Before any native planning documents are created, offer a
 separate planning-file approval naming the absolute workspace and exact relative paths. Use only the documents
 and metadata required by the selected platform's structured planning workflow. Approval includes only those
 named files and necessary parent directories. Workflow agents inherit that scope; implementation tasks wait for
