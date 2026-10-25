@@ -48,7 +48,8 @@ Workflow agents inherit only that scope; implementation waits for deployment app
 and the private IAM-team request still appear in chat. Planning-file approval does not authorize authentication,
 installations, checkpoints, IAM changes or deployment. Checkpoint schema version 2 binds planning-file approval
 to the workspace and paths and reads legacy version 1; scope changes invalidate planning-file and dependent
-deployment approval. Traversal and symlink escapes are rejected.
+deployment approval. Traversal and symlink escapes are rejected. All platforms use the canonical JSON checkpoint
+template with fixed field names and boolean approvals; checkpoint consent cannot imply other setup.
 
 Keep documents concise and adapt writes to the platform's supported limits. Retain and repair output-limit or
 argument-validation failures, then verify actual files. Follow the host's installation and privilege policy and

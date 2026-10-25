@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shlex
 import tempfile
 import unittest
@@ -693,6 +694,71 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
                 planning_scope=scope,
             )
             self.assertFalse(changed["approvals"]["planning_files"])
+
+    def test_canonical_checkpoint_contract_matches_writer_and_reader(self):
+        prompt = Path(__file__).resolve().parents[1] / "prompts/gcp-customer-edge.txt"
+        match = re.search(
+            r"Checkpoint v2 core JSON template:\s*```json\n(.*?)\n```",
+            prompt.read_text(),
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match, "Canonical prompt must define checkpoint fields")
+        assert match is not None
+        template = json.loads(match[1])
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            workspace = root / "workspace"
+            workspace.mkdir(mode=0o700)
+            scope = {"workspace": str(workspace), "paths": ["planning/requirements.md"]}
+            approvals = {
+                "local_setup": True,
+                "planning_files": True,
+                "iam_administration": False,
+                "deployment": True,
+            }
+            result = support.iam_preflight(
+                self.selection, lambda _: ("PASS", "verified fixture identity")
+            )
+            reference = root / "reference.json"
+            support.save_iam_checkpoint(
+                reference,
+                prompt,
+                result,
+                approvals,
+                ["a" * 64],
+                600,
+                planning_scope=scope,
+            )
+            written = json.loads(reference.read_text())
+            self.assertEqual(set(template), set(written))
+            self.assertEqual(set(template["selection"]), set(support.SELECTION_FIELDS))
+            self.assertEqual(
+                [row["gate"] for row in template["gates"]], list(support.IAM_GATES)
+            )
+            for row in template["gates"]:
+                self.assertEqual(set(row), set(written["gates"][0]))
+            self.assertEqual(set(template["approvals"]), set(approvals))
+            self.assertTrue(
+                all(isinstance(x, bool) for x in template["approvals"].values())
+            )
+            template.update(written)
+            generated = root / "client.json"
+            descriptor = os.open(generated, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descriptor, "w") as stream:
+                json.dump(template, stream)
+            observed = []
+            resumed = support.resume_iam_checkpoint(
+                generated,
+                prompt,
+                self.selection,
+                lambda gate: observed.append(gate) or ("PASS", "fresh observation"),
+                planning_scope=scope,
+            )
+            self.assertEqual(observed, list(support.IAM_GATES))
+            self.assertEqual(resumed["approvals"], approvals)
+            self.assertEqual(resumed["installation_receipts"], ["a" * 64])
+            self.assertEqual(resumed["propagation_deadline"], 600)
 
     def test_planning_scope_accepts_explicit_platform_neutral_paths(self):
         with tempfile.TemporaryDirectory() as folder:

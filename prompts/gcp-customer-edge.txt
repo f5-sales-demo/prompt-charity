@@ -415,6 +415,103 @@ cannot authorize checkpoint creation. Checkpoint approval does not authorize
 native session-memory plan files, workspace plan.md, scripts or other artifacts.
 Keep the plan in chat until its own planning-file approval; always return the
 IAM-team request in chat. Private or agent-owned storage is not an exemption.
+Use exactly the following core JSON field names and structure so checkpoints
+remain readable across platforms and by the helper. Substitute observed values;
+never retain example placeholders or copy example approval/status values as facts.
+Do not rename fields or replace boolean approvals with status objects. The six
+selection fields are strings. If no service account is selected, both service-account
+fields are empty and credential_method is existing-adc; otherwise use the chosen
+method from the enum shown below.
+local_setup records checkpoint-persistence consent ONLY. It never authorizes
+authentication changes, installations, other files or deployment. The approvals
+map contains only these four booleans. Other action scopes require their own
+separately approved receipts; do not invent additional core approval flags.
+planning_scope is null when no planning files are approved; otherwise it is
+{"workspace": "[exact absolute approved workspace]", "paths": ["[exact approved relative file]"]}.
+Copy all approved paths into that list. Record the pending private IAM-team request
+as an object in outstanding_request; use null only when no request is outstanding.
+installation_receipts contains only verified SHA256 digests, never log text.
+propagation_deadline is null before administrator confirmation; on confirmation,
+set it once to confirmation time plus 600 seconds, as numeric UTC Unix seconds,
+BEFORE any propagation polling. Its original confirmation time is deadline minus
+600 seconds. Preserve that deadline across retries and same-session recovery.
+Checkpoint v2 core JSON template:
+```json
+{
+  "schema_version": 2,
+  "prompt_sha256": "[Full SHA256 of this exact canonical prompt]",
+  "selection": {
+    "caller": "[user:email or serviceAccount:email]",
+    "service_account": "[Service-account email, or empty for existing-adc without a service account]",
+    "service_account_project": "[Service-account owning project, or empty when no service account]",
+    "deployment_project": "[Deployment project ID]",
+    "quota_project": "[Quota project ID]",
+    "credential_method": "[existing-adc, impersonated-adc, provider-impersonation or json-key]"
+  },
+  "gates": [
+    {
+      "gate": "identity_selection",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "impersonation_access",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "deployment_permissions",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "apis_quota_project",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "cli_adc_authentication",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    }
+  ],
+  "outstanding_request": null,
+  "approvals": {
+    "local_setup": true,
+    "planning_files": false,
+    "iam_administration": false,
+    "deployment": false
+  },
+  "planning_scope": null,
+  "installation_receipts": [],
+  "propagation_deadline": null
+}
+```
 Write checkpoint schema version 2 and continue reading legacy version 1 without
 inferring planning-file approval. Revalidate workspace/path containment on resume;
 workspace or path changes revoke planning-file and dependent deployment approval.
