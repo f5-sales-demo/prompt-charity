@@ -413,14 +413,6 @@ def iam_team_request(result: dict) -> dict | None:
 
 
 CHECKPOINT_VERSION = 2
-KIRO_PLANNING_PATHS = frozenset(
-    {
-        ".kiro/specs/gcp-customer-edge/requirements.md",
-        ".kiro/specs/gcp-customer-edge/design.md",
-        ".kiro/specs/gcp-customer-edge/tasks.md",
-        ".kiro/specs/gcp-customer-edge/.config.kiro",
-    }
-)
 
 
 def validate_planning_scope(scope: dict | None) -> dict | None:
@@ -436,15 +428,22 @@ def validate_planning_scope(scope: dict | None) -> dict | None:
         or not Path(workspace).is_absolute()
         or not isinstance(paths, list)
     ):
-        msg = "Planning scope requires an absolute workspace and unique allowed Kiro paths"
+        msg = "Planning scope requires an absolute workspace and unique approved relative paths"
         raise ValueError(msg)
     if (
         not paths
         or any(not isinstance(path, str) for path in paths)
         or len(paths) != len(set(paths))
-        or not set(paths).issubset(KIRO_PLANNING_PATHS)
+        or any(
+            not path
+            or Path(path).is_absolute()
+            or "\\" in path
+            or any(part in {"", ".", ".."} for part in path.split("/"))
+            or re.search(r"[\x00-\x1f\x7f]", path)
+            for path in paths
+        )
     ):
-        msg = "Planning paths must be a nonempty unique Kiro allowlist"
+        msg = "Planning paths must be a nonempty unique list of safe relative filenames"
         raise ValueError(msg)
     root = Path(workspace)
     if not root.is_dir() or root.is_symlink() or ".." in root.parts:
@@ -453,6 +452,9 @@ def validate_planning_scope(scope: dict | None) -> dict | None:
     root = root.resolve()
     for path in paths:
         target = root / path
+        if target.is_dir():
+            msg = "Planning paths must name files, not directories"
+            raise ValueError(msg)
         # Check existing parent links as well as the final file, even when absent.
         if not target.resolve().is_relative_to(root):
             msg = "Planning path escapes its approved workspace"

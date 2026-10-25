@@ -14,30 +14,25 @@ proceeding. Automatic platform chat/tool history is allowed. Do not change the
 user's normal profile or global settings to enforce this boundary.
 Before creating any native planning documents, offer a separate planning-file
 approval with the exact absolute workspace and relative file paths. If declined,
-keep planning read-only and artifact-free. For Kiro, use the Requirements-First
-Feature Spec workflow and approve ONLY these paths in the selected workspace:
-.kiro/specs/gcp-customer-edge/requirements.md
-.kiro/specs/gcp-customer-edge/design.md
-.kiro/specs/gcp-customer-edge/tasks.md
-.kiro/specs/gcp-customer-edge/.config.kiro
-This exception permits only those documents and necessary parent directories.
-Native workflow agents receive the same scope; do not delegate wider writes or
-execute Spec tasks until the deployment plan is explicitly approved. Check path
-containment before every write; reject traversal and symlink escapes. Inventory
-all workspace changes, including hidden files, at each approval boundary.
-Keep native Spec documents concise while retaining every acceptance gate. Group
-related criteria into at most six top-level workflow-phase requirements; reference
-this canonical prompt's full hash instead of duplicating its commands or schemas.
-Pass these constraints to native workflow agents too. Limit each native file-write
-or append text argument to 4096 UTF-8 bytes; split longer documents into bounded
-native writes or targeted edits within the approved paths. An output-limit stop,
-incomplete tool arguments or failed validation is a failed request, not a write.
-Preserve it and repair the request with smaller complete arguments; never repeat
-the unchanged failed request or infer file creation from a preview. Verify the
-actual files after writing, without broadening approval or resetting deadlines.
+keep planning read-only and artifact-free. If the selected platform offers a
+structured planning workflow, propose only the documents and metadata it requires,
+with their exact paths; do not assume a particular product, directory or filename.
+Approval permits only those named documents and necessary parent directories.
+Any delegated workflow agents receive the same scope; do not delegate wider
+writes or execute implementation tasks until the deployment plan is approved.
+Check path containment before every write; reject traversal and symlink escapes.
+Inventory all workspace changes, including hidden files, at each approval boundary.
+Keep planning documents concise while retaining every acceptance gate; reference
+the canonical prompt's full hash rather than duplicating commands or schemas.
+Use complete tool arguments within the selected platform's supported limits;
+split larger documents or use targeted edits within the approved paths as needed.
+An output-limit stop, incomplete arguments or failed validation is a failed
+request, not a write. Preserve it and repair the request; never repeat it unchanged
+or infer file creation from a preview. Verify actual files after writing without
+broadening approval or resetting deadlines. Pass these constraints to any agents.
 Authentication, installations, checkpoints, IAM administration, licence probes
 and deployment retain their separate approvals. Return the five prerequisite
-gates and private IAM-team request in chat even when Spec documents are approved.
+gates and private IAM-team request in chat even when planning documents are approved.
 After file-creation approval, enable only the writing tools needed for that scope.
 
 ## Objective and inputs
@@ -109,10 +104,11 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
-On an MDM-managed Mac, do not use sudo or request privileges. Respect the
-corporate installation policy: any approved nonprivileged installation must use
-the IT-controlled brew with its security hooks. Reuse installed tools. Never
-change system trust, the normal profile or global settings to repair transport.
+Discover and follow the host's installation and privilege policy. Reuse installed
+tools and include only permitted installation methods in a separately approved
+setup plan. If elevated privileges are prohibited, do not request them. Use the
+organization's required package manager and security hooks when applicable.
+Never change system trust, the normal profile or global settings to repair transport.
 Before authenticated checks, discover existing corporate CA configuration from
 non-secret path metadata and installed CLI settings. A wrapper's session CA bundle
 may omit corporate interception roots even when native login works. Preserve TLS
@@ -123,7 +119,7 @@ report transport UNKNOWN and pause. Recheck authenticated API identity and priva
 repository access before diagnosing an invalid GitHub token or asking for login:
 an auth-status failure behind a wrapper does not prove the stored credential is
 invalid. Never refresh or replace credentials to bypass an unresolved TLS failure.
-During planning, apart from separately approved native Spec documents, create no
+During planning, apart from separately approved native planning documents, create no
 temporary scripts, HTTP response files, diagnostic files or output redirections,
 inside or outside the workspace. Perform checks
 and parse responses in memory. A file-reader or search tool that returns
@@ -403,7 +399,7 @@ CE teardown; they are not owned resources of this Terraform state.
 ## Private checkpoint and same-session resume
 
 During native planning, return prerequisites and the IAM-team request in chat;
-create no files except the separately approved native Spec documents. Do not
+create no files except the separately approved native planning documents. Do not
 download a helper or create plan.md. This prompt contains
 sufficient instructions to perform the checks without downloading a helper.
 After explicit local setup approval, save an owner-only checkpoint outside the
@@ -414,7 +410,7 @@ separate planning-file approval and its exact workspace/path scope,
 installation receipts and the original propagation deadline. Store no token, key
 contents, complete IAM policy, credential-bearing response or raw transcript in
 it. Raw failures belong only in separate private evidence with secret handling.
-A checkpoint-only approval authorizes ONLY that checkpoint. Spec approval alone
+A checkpoint-only approval authorizes ONLY that checkpoint. Planning-file approval alone
 cannot authorize checkpoint creation. Checkpoint approval does not authorize
 native session-memory plan files, workspace plan.md, scripts or other artifacts.
 Keep the plan in chat until its own planning-file approval; always return the
@@ -446,7 +442,7 @@ before deployment. Preserve installation receipts: do not repeat approved
 installations on session restart, silently change identities or deploy
 automatically. IAM confirmation, local setup approval and scoped deployment
 approval and planning-file approval remain separate. Passing authentication never
-authorizes deployment. A revised prompt also requires review of Spec approval.
+authorizes deployment. A revised prompt also requires review of Planning-file approval.
 
 ## Plan and approval boundary
 

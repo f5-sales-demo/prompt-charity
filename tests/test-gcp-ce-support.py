@@ -2,7 +2,7 @@
 
 # Standard-library unittest keeps the shell test entrypoint dependency-free.
 # ruff: noqa: INP001, PT009, PT027
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-lines
 import contextlib
 import hashlib
 import importlib.util
@@ -694,6 +694,22 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
             )
             self.assertFalse(changed["approvals"]["planning_files"])
 
+    def test_planning_scope_accepts_explicit_platform_neutral_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            paths = ["plan.md", "planning/requirements.md", ".config.json"]
+            scope = {"workspace": str(root), "paths": paths}
+            self.assertEqual(
+                support.validate_planning_scope(scope),
+                {"workspace": str(root.resolve()), "paths": sorted(paths)},
+            )
+            self.assertEqual(list(root.iterdir()), [])
+            with self.assertRaises(ValueError):
+                support.validate_planning_scope({**scope, "paths": ["."]})
+            (root / "planning").mkdir()
+            with self.assertRaises(ValueError):
+                support.validate_planning_scope({**scope, "paths": ["planning"]})
+
     def test_planning_scope_rejects_unsafe_paths_and_symlink_changes(self):
         result = self.preflight()
         with tempfile.TemporaryDirectory() as folder:
@@ -709,15 +725,12 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
                 "paths": [".kiro/specs/gcp-customer-edge/.config.kiro"],
             }
             for path in (
-                ".config.kiro",
                 "../.config.kiro",
                 ".kiro/../.config.kiro",
                 "/outside/.config.kiro",
-                "plan.md",
-                ".kiro/specs/gcp-customer-edge/secrets.md",
                 ".kiro//specs/gcp-customer-edge/tasks.md",
                 "..\\.config.kiro",
-                self.sentinel,
+                self.sentinel + "\n",
             ):
                 with self.subTest(path=path), self.assertRaises(ValueError):
                     support.save_iam_checkpoint(
@@ -896,7 +909,7 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
                 "https://iam.googleapis.com/v1/projects/-/serviceAccounts/"
                 + self.selection["service_account"]
                 + ":testIamPermissions",
-                self.sentinel,
+                self.sentinel + "\n",
                 {"permissions": [support.IAM_PERMISSION]},
             )
             self.assertEqual(request, (403, b""))

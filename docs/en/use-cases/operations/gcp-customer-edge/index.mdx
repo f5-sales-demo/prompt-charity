@@ -42,21 +42,17 @@ chat, published configuration and the Terraform input directory. State, saved pl
 
 Enable native planning mode in your chosen agent, then copy this entire block. Replace bracketed inputs or ask for checked proposals. Review its discovered environment and scoped plan before approving installations, file creation, the licence probe or deployment.
 
-For Kiro, choose the Requirements-First Feature Spec workflow. Before creating documents, separately approve the
-absolute workspace and only `.kiro/specs/gcp-customer-edge/requirements.md`, `design.md` and `tasks.md` in that
-directory, plus `.config.kiro` in that Spec directory and necessary parent directories. Native workflow agents inherit this scope;
-task execution waits for deployment approval. All five prerequisites and the private IAM-team request still appear in
-chat. Spec approval does not authorize authentication, installations, checkpoints, IAM changes or deployment.
-Checkpoint schema version 2 binds planning-file approval to the workspace and paths and reads legacy version 1;
-scope changes invalidate planning-file and dependent deployment approval. Traversal and symlink escapes are rejected.
-The Spec keeps all gates in at most six workflow-phase requirement groups. Native writes use at most 4096 UTF-8
-bytes of text per call, with larger documents split into bounded writes or targeted edits. Output-limit and
-argument-validation failures are retained and repaired before actual-file verification.
+Planning is read-only and artifact-free by default. If your platform requires planning documents or metadata,
+review a separate approval naming the absolute workspace and every relative path before any files are created.
+Workflow agents inherit only that scope; implementation waits for deployment approval. All five prerequisites
+and the private IAM-team request still appear in chat. Planning-file approval does not authorize authentication,
+installations, checkpoints, IAM changes or deployment. Checkpoint schema version 2 binds planning-file approval
+to the workspace and paths and reads legacy version 1; scope changes invalidate planning-file and dependent
+deployment approval. Traversal and symlink escapes are rejected.
 
-On an MDM-managed Mac, the prompt requires no sudo or privilege requests and uses the IT-controlled brew for any
-approved nonprivileged installation. Wrapper TLS failures are diagnosed against existing corporate trust for the
-affected process, without changing system trust or creating planning artifacts. Auth-status output alone cannot
-establish invalid credentials.
+Keep documents concise and adapt writes to the platform's supported limits. Retain and repair output-limit or
+argument-validation failures, then verify actual files. Follow the host's installation and privilege policy and
+existing corporate trust without changing system settings. Auth-status output alone cannot establish invalid credentials.
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
 
@@ -93,7 +89,7 @@ reviewed deployment, stable ONLINE/NIC checks, post-registration zero drift and 
 Both reused installed terraform-docs and kept configuration and saved plans in the visible workspace. Temporary IAM
 grants and the task-owned service account were removed after both runs. These receipts qualify the preceding hash and
 record the exact selected releases; each new deployment still discovers the current release and rechecks prerequisites.
-The native Spec exception changes the prompt hash. Native Kiro CLI/Desktop qualification and two refreshed consecutive
+The platform-neutral planning-document exception changes the prompt hash. Native Kiro CLI/Desktop qualification and two refreshed consecutive
 Copilot runs are required before this revised hash is live-qualified. Historical receipts remain unchanged. Their prompt SHA256 is
 `55c6826d0f68e2249f2268a75a7a6a5723a83d81c5b3655f29ba0e3d382ea977`.
 

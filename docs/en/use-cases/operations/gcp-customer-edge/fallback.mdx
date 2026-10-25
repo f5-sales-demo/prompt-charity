@@ -105,25 +105,23 @@ rule. Do not bypass policies or use an unreviewed target/recomputed plan.
 After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
 hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
 receipts and propagation deadline. Never save credential values or full policies.
-Checkpoint-only approval permits only that checkpoint, not a native session-memory `plan.md` or Spec documents.
+Checkpoint-only approval permits only that checkpoint, not a native session-memory `plan.md` or planning documents.
 Keep planning read-only and artifact-free by default. Before any native planning documents are created, offer a
-separate planning-file approval naming the absolute workspace and exact relative paths. For Kiro, use the
-Requirements-First Feature Spec workflow and approve only `.kiro/specs/gcp-customer-edge/requirements.md`,
-`design.md` and `tasks.md` in that same directory, plus `.config.kiro` in that Spec directory and necessary parent directories.
-Native workflow agents inherit only that scope; Spec task execution waits for deployment approval.
-Keep all acceptance gates in concise documents with at most six workflow-phase requirement groups. Pass the
-same constraints to workflow agents. Bound each native write/append text argument to 4096 UTF-8 bytes, split larger
-documents or use targeted edits, and verify the actual files. Retain output-limit or argument-validation failures;
-repair the request instead of repeating it unchanged. A preview never proves a successful write. Reject traversal
-and symlink escapes before writing; inventory hidden files too at each approval boundary. Return all five gates and
-the private IAM-team request in chat. Authentication, installations, checkpoints, IAM administration, licence probes
-and deployment retain separate approvals. Spec approval alone cannot authorize checkpoint creation.
+separate planning-file approval naming the absolute workspace and exact relative paths. Use only the documents
+and metadata required by the selected platform's structured planning workflow. Approval includes only those
+named files and necessary parent directories. Workflow agents inherit that scope; implementation tasks wait for
+deployment approval. Keep every acceptance gate in concise documents and adapt complete write arguments to the
+platform's supported limits. Verify actual files; retain and repair failed requests instead of repeating them
+unchanged. A preview never proves a write. Reject traversal and symlink escapes and inventory hidden files at
+each approval boundary. Return all five gates and the private IAM-team request in chat. Authentication,
+installations, checkpoints, IAM administration, licence probes and deployment retain separate approvals.
+Planning-file approval alone cannot authorize checkpoint creation.
 Automatic platform chat/tool history is allowed. The helper provides
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
 invalidates deployment approval when selection or prompt changes. Checkpoint schema version 2 records separate
 `planning_files` approval and `planning_scope` with `workspace` and an allowlisted `paths` list. Pass that scope as
 the keyword argument `planning_scope` to both helper functions; they validate containment without creating files.
-Legacy version 1 remains readable and never implies Spec approval. Workspace/path changes revoke planning-file and
+Legacy version 1 remains readable and never implies planning-file approval. Workspace/path changes revoke planning-file and
 dependent deployment approval; resume revalidates existing path links. Prompt changes also revoke planning approval.
 Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
@@ -244,7 +242,7 @@ a failed probe as approval to alter marketplace policy.
 After approval, use `terraform/` and, when enabled, `docs/` relative to the active private workspace. Confirm the
 Terraform files, saved plan binaries and review JSON under `terraform/plans/`, and any generated `docs/terraform.md`
 appear in its explorer. Keep these artifacts private with permissions instead of hiding them in a sibling directory. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
-creates no workspace files except separately approved native Spec documents. The defaults intentionally require explicit project, region, zone,
+creates no workspace files except separately approved native planning documents. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
