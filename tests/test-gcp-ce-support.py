@@ -747,12 +747,17 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
             descriptor = os.open(generated, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(descriptor, "w") as stream:
                 json.dump(template, stream)
-            observed = []
+            observed: list[str] = []
+
+            def observe(gate: str) -> tuple[str, str]:
+                observed.append(gate)
+                return "PASS", "fresh observation"
+
             resumed = support.resume_iam_checkpoint(
                 generated,
                 prompt,
                 self.selection,
-                lambda gate: observed.append(gate) or ("PASS", "fresh observation"),
+                observe,
                 planning_scope=scope,
             )
             self.assertEqual(observed, list(support.IAM_GATES))
