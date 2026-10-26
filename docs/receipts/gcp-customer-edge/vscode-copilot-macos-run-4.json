@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "prompt_sha256": "47e27ed2868e4141bd42c39319297d34990ad4226874f868f4e06a6943278342",
+  "run": "current-hash clean-room qualification",
+  "harness": {
+    "name": "VS Code GitHub Copilot Chat",
+    "version": "1.143.1",
+    "os": "macOS",
+    "model": "claude-opus-5-5",
+    "native_planning_mode": true,
+    "same_session_implementation": true,
+    "private_profile": true,
+    "automatic_test_tool_permissions": true,
+    "extension_version": "0.71.0"
+  },
+  "planning": {
+    "empty_start_directory": true,
+    "missing_impersonation_detected": true,
+    "private_iam_team_request_produced": true,
+    "checkpoint_approval_separate": true,
+    "original_confirmation_deadline_preserved": true,
+    "fresh_permission_token_identity_checks": true,
+    "no_deliberate_workspace_or_memory_plan_artifacts": true
+  },
+  "provider": {
+    "version": "0.9.7",
+    "prerelease": true,
+    "sha256": "010b7d729df3afff42dcf7448253af3b297967c63df0249b4fdc08f7cdc1e679",
+    "binary_sha256": "25f26cb13dcf331613352dc319b4284f4bf493c76c85746942d63a7d33508696",
+    "latest_catalog_discovered": true
+  },
+  "image": {
+    "name": "f5xc-ce-crt-20260801-0205-byol",
+    "immutable_id": "1689146860273445475"
+  },
+  "gates": {
+    "stable_online": true,
+    "independent_online_gap_seconds": 30.8602511882782,
+    "ens4_slo_primary": true,
+    "ens5_sli_nonprimary": true,
+    "independent_guest_nic_mac_ip_match": true,
+    "native_detailed_exit_code": 0,
+    "independent_detailed_exit_code": 0,
+    "online_rechecked_after_zero_plan": true
+  },
+  "disk": {
+    "provisioned_gb": 120,
+    "type": "pd-balanced",
+    "future_upgrade_test_performed": false
+  },
+  "regional_edges": {
+    "recorded_separately": true,
+    "count": 2
+  },
+  "teardown": {
+    "managed_deletes": 15,
+    "independent_exact_absence_checks": 17,
+    "all_absence_response_shapes_validated": true,
+    "state_empty": true
+  },
+  "evidence": {
+    "raw_transcripts_screenshots_states_and_iam_details": "private",
+    "native_export_supported_and_captured": true,
+    "credential_scan": "passed",
+    "full_initial_input_fidelity": true,
+    "external_authentication_recovery_same_session": true,
+    "private_success_receipt_sha256": "4a0f78dcfa6946cd0b464773eef4a0908aa6b1a8ec9f99c570b8953095043688",
+    "private_final_cleanup_receipt_sha256": "47f447c78e5e2dfbd452d837490a987961996c84ac41009b50a17bb72541ac83"
+  },
+  "iam_fixture_cleanup": {
+    "status": "passed",
+    "caller_grant_removed_between_runs": true,
+    "fresh_permission_missing_and_token_mint_denied": true,
+    "task_service_account_exact_absence": true,
+    "task_service_account_inventory_absence": true,
+    "task_project_bindings_absent": true
+  },
+  "tools": {
+    "terraform": "1.17.0",
+    "google_provider": "8.8.1",
+    "random_provider": "3.9.1",
+    "terraform_docs": "0.24.0",
+    "installed_terraform_docs_reused": true
+  }
+}

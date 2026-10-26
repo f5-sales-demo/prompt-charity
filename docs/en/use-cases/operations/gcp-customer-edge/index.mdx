@@ -87,16 +87,35 @@ The current prompt includes an evidence-based IAM preflight, administrator hando
 Readable-public-image permission uncertainty is resolved by a separately approved image/licence probe. New-network
 policy checks can use phased saved plans before VM provisioning; terminal and prompt-hash checks preserve resume evidence.
 Deterministic fixtures cover permission failures, uncertain responses, propagation deadlines and credential handling.
+The current canonical prompt passed one clean-room native Kiro CLI run, one native Kiro Desktop run and two
+consecutive clean-room VS Code GitHub Copilot Chat runs on macOS, completed on 2026-10-26 with Claude Opus 5.5.
+Each began with an empty workspace, detected missing caller impersonation, returned a private IAM-team request,
+paused without IAM or deployment mutations, and resumed the same native session after a separate operator grant.
+Kiro used Requirements-First Feature Specs with separately scoped planning-document approval. Copilot used native
+Plan mode without deliberate workspace or memory planning artifacts. Checkpoint creation and saved-plan execution
+had separate approvals; original propagation deadlines and installation receipts survived recovery.
+
+Each run completed inspected deployment, consecutive validated ONLINE observations at least 30 seconds apart,
+actual guest NIC/MAC/IP checks for ens4 SLO primary and ens5 SLI nonprimary, native and independent full
+normal refresh Terraform detailed exit code zero, a subsequent ONLINE check, and inspected teardown. Independent
+checks confirmed all 17 exact cloud absences and empty Terraform state. Regional Edge connectivity was recorded
+separately. All runs reused installed terraform-docs and preserved the 120 GB pd-balanced default. Caller grants
+were removed between runs; the task-owned service account and its project bindings were removed after qualification.
+Private test profiles supplied automatic tool permissions and the configured model. Customer instructions remain
+platform-neutral and retain approval boundaries. Raw evidence and failed attempts remain private.
+
+| Harness | Current-hash run | Gates and cleanup | Sanitized evidence |
+| --- | --- | --- | --- |
+| Kiro CLI 2.33.1 / Claude Opus 5.5 on macOS | Clean-room CLI | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/kiro-cli-macos.json) |
+| Kiro Desktop 1.4.26 / Claude Opus 5.5 on macOS | Clean-room Desktop | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/kiro-desktop-macos.json) |
+| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Refreshed clean-room 1 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-3.json) |
+| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Refreshed clean-room 2 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-4.json) |
+
 Two consecutive clean-room Mac VS Code GitHub Copilot Chat runs passed against the preceding canonical hash on
-2026-10-24, using Claude Opus 5.5 in the Local extension host. Each started in native Plan mode with an empty workspace,
-paused for missing caller impersonation, resumed the same session after a separate operator grant, and then completed
-reviewed deployment, stable ONLINE/NIC checks, post-registration zero drift and independently verified teardown.
-Both reused installed terraform-docs and kept configuration and saved plans in the visible workspace. Temporary IAM
-grants and the task-owned service account were removed after both runs. These receipts qualify the preceding hash and
-record the exact selected releases; each new deployment still discovers the current release and rechecks prerequisites.
-The platform-neutral planning-document exception changes the prompt hash. Native Kiro CLI/Desktop qualification and two refreshed consecutive
-Copilot runs are required before this revised hash is live-qualified. Historical receipts remain unchanged. Their prompt SHA256 is
+2026-10-24. Their historical receipts remain unchanged and apply to SHA256
 `55c6826d0f68e2249f2268a75a7a6a5723a83d81c5b3655f29ba0e3d382ea977`.
+These results record the exact selected releases; every new deployment still discovers the current release and
+rechecks prerequisites.
 
 | Harness | Historical run | Gates and cleanup | Sanitized evidence |
 | --- | --- | --- | --- |
