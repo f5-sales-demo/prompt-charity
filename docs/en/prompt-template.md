@@ -1,9 +1,14 @@
 ---
 title: Prompt template
 description: A portable contract for contributing a complete prompt.
+sidebar:
+  hidden: true
 ---
 
-A prompt page has an English title and description, a use case, required inputs, one complete copyable block imported from a canonical source outside rendered docs, a plain-text download, and guidance for reviewing the result. Put it in the appropriate category.
+A prompt page has an English title and description, a use case, required inputs, one complete copyable block imported
+from a canonical source outside rendered docs, a plain-text download, and guidance for reviewing the result. Put it at
+`docs/en/use-cases/<case>.mdx` and add one homepage card. Supporting guides live in a matching `<case>/` directory,
+declare their fallback or reference role, and set `sidebar.hidden: true`.
 
 ```text
 Work in planning mode. Use only authorized read-only investigation. Do not edit files, install tools, commit, publish, deploy, or change external state.

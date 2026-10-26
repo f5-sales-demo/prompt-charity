@@ -1,6 +1,9 @@
 ---
 title: Prompt Charity
-description: Categorized, harness-agnostic prompts for reviewable plans before implementation.
+description: Complete, harness-agnostic prompts for reviewable plans before implementation.
+sidebar:
+  label: Home
+  order: 1
 template: splash
 hero:
   image:
@@ -9,27 +12,40 @@ hero:
   tagline: Choose a use case. Bring your context. Review a clear plan in the AI harness you prefer.
   actions:
     - text: Browse use cases
-      link: /prompt-charity/en/use-cases/
+      link: /prompt-charity/en/#use-cases
       variant: primary
     - text: How to use a prompt
-      link: /prompt-charity/en/getting-started/
+      link: /prompt-charity/en/#how-to-use
       variant: secondary
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
 import LinkCard from '@f5-sales-demo/docs-theme/components/LinkCard.astro';
 
-## Start with an outcome
+## Use cases
 
-Prompt Charity is an English library of complete reusable prompts. The copyable text works independently of harness commands, provider tools, plugins, and operating systems.
+Choose an outcome and bring your context. Each case offers one complete prompt, a copy control, a plain-text download and guidance for checking the result.
 
 <CardGrid>
-  <LinkCard icon="carbon:settings" title="Operations" description="Deploy and verify a Customer Edge in GCP." href="/prompt-charity/en/use-cases/operations/" />
-  <LinkCard icon="carbon:cloud" title="Deploy a Customer Edge in GCP" description="A complete prompt from read-only planning through approved deployment and cleanup." href="/prompt-charity/en/use-cases/operations/gcp-customer-edge/" />
+  <LinkCard icon="carbon:cloud" title="Deploy a Customer Edge in GCP" description="Plan, approve, deploy and verify one dual-interface Customer Edge, then clean up owned resources." href="/prompt-charity/en/use-cases/gcp-customer-edge/" />
 </CardGrid>
 
-## Share useful prompts and interpret intent carefully
+## How to use
 
-We use the name Prompt Charity to combine sharing useful prompts with charitable interpretation: understand the strongest reasonable version of a user's intent, clarify ambiguity, and preserve their constraints. Read [about the name](/prompt-charity/en/about/).
+1. Choose a use case and copy its complete prompt.
+2. Replace bracketed inputs with your objective, environment, constraints, ownership and available evidence.
+3. Enable your AI harness's planning mode before submitting it.
+4. Review scope, assumptions, proposed steps, risks and acceptance criteria. Resolve material questions.
+5. Explicitly approve the scoped plan when ready. Keep the same session active through implementation, verification and authorized cleanup.
 
-The library starts with plans for review and contains implementation instructions to follow after explicit approval. See [getting started](/prompt-charity/en/getting-started/) and the [prompt template](/prompt-charity/en/prompt-template/).
+Planning modes differ. If yours is unavailable, disable write tools and request a written plan with read-only investigation. Prompt wording does not enforce permissions. When an agent cannot inspect your environment, provide evidence and expect it to identify what remains unverified.
+
+Keep credentials and raw evidence private. Live qualification applies to the exact prompt candidate and environment recorded on its page; portability does not guarantee identical outputs or available tools.
+
+## About
+
+Prompt Charity shares useful prompts freely and interprets intent constructively. The philosophical [principle of charity](https://en.wikipedia.org/wiki/Principle_of_charity) asks readers to consider the strongest reasonable interpretation of a statement. Here, that means clarifying ambiguity, recording assumptions and preserving your goals and constraints.
+
+This is the project's interpretation of the name. The library's prompts use instructions shared across harnesses and operating systems, beginning with reviewable plans and continuing after explicit approval.
+
+Contribute one English page and one homepage card per use case. Follow the [prompt template](/prompt-charity/en/prompt-template/) and use placeholders or synthetic examples in public contributions.
