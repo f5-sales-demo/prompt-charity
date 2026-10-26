@@ -120,6 +120,45 @@ def local_links(root: Path, page: Path, text: str) -> list[str]:
     return errors
 
 
+def relative_imports(
+    root: Path, page: Path, text: str, imports: dict[str, Path]
+) -> list[str]:
+    """Resolve relocated component and raw-source imports before the build."""
+    errors = []
+    data_root = (root / "docs/_data").resolve()
+    for path in re.findall(r"from\s+['\"](\.[^'\"]+)['\"]", text):
+        target = (page.parent / path.split("?")[0]).resolve()
+        if target.is_relative_to(data_root):
+            source = imports.get(target.relative_to(data_root).as_posix())
+            valid = source is not None and (root / source).is_file()
+        else:
+            valid = (
+                target.is_relative_to((root / "docs").resolve()) and target.is_file()
+            )
+        if not valid:
+            errors.append(f"{page}: broken relative import {path}")
+    return errors
+
+
+def homepage_cards(root: Path, use_cases: list[Path]) -> list[str]:
+    """Require exactly one homepage card per peer-level use case."""
+    home = root / "docs/en/index.mdx"
+    text = home.read_text(encoding="utf-8") if home.exists() else ""
+    cards = re.findall(r'<LinkCard\b[^>]*href="([^"]+)"[^>]*>', text)
+    routes = {f"/prompt-charity/en/use-cases/{page.stem}/" for page in use_cases}
+    errors = [
+        f"{route}: expected one homepage card"
+        for route in sorted(routes)
+        if cards.count(route) != 1
+    ]
+    errors.extend(
+        f"{card}: homepage card must link to a peer-level use case"
+        for card in cards
+        if card not in routes
+    )
+    return errors
+
+
 def validate(root: Path) -> list[str]:
     """Return all library errors without modifying content or staged imports."""
     docs = root / "docs/en"
@@ -142,26 +181,36 @@ def validate(root: Path) -> list[str]:
             or re.search(r"<!-- prompt-library: (fallback|reference) -->", text)
         )
         is_use_case = page.is_relative_to(catalog)
-        landing = page.stem == "index" and page.parent in {catalog, *catalog.iterdir()}
+        peer = page.parent == catalog and page.stem != "index"
+        if supporting and not re.search(r"sidebar:\s*\n\s+hidden: true", text):
+            errors.append(f"{page}: supporting guide requires sidebar.hidden: true")
+        if is_use_case and page.stem == "index" and not supporting:
+            errors.append(f"{page}: category placeholder is not a use case")
         if prompt_imports:
             use_cases.append(page)
             if not is_use_case or supporting or len(prompt_imports) != 1:
                 errors.append(f"{page}: expected one canonical use-case prompt")
+            if not peer:
+                errors.append(f"{page}: canonical case must be a peer-level page")
             errors.extend(canonical_contract(root, page, text, imports, prompt_imports))
-        elif is_use_case and not landing and not supporting:
+        elif is_use_case and not supporting:
             errors.append(
                 f"{page}: unclassified use-case page; declare fallback/reference or import canonical prompt"
             )
         errors.extend(local_links(root, page, text))
+        errors.extend(relative_imports(root, page, text, imports))
     if not use_cases:
         errors.append("No canonical use-case pages found")
     if catalog.exists():
-        errors.extend(
-            f"{category}: empty category"
-            for category in catalog.iterdir()
-            if category.is_dir()
-            and not any(page.is_relative_to(category) for page in use_cases)
-        )
+        peer_names = {page.stem for page in use_cases if page.parent == catalog}
+        for directory in catalog.iterdir():
+            if directory.is_dir() and directory.name not in peer_names:
+                errors.append(
+                    f"{directory}: supporting directory requires a peer-level case"
+                )
+            elif directory.is_dir() and not any(directory.rglob("*.md*")):
+                errors.append(f"{directory}: empty supporting directory")
+    errors.extend(homepage_cards(root, use_cases))
     return errors
 
 
@@ -174,7 +223,7 @@ def main() -> None:
     if errors:
         raise SystemExit("\n".join(errors))
     print(
-        "Verified canonical complete prompts, populated categories and English documentation links"
+        "Verified canonical complete prompts, flat use cases, unique homepage cards and English documentation links"
     )
 
 

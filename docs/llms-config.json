@@ -1,5 +1,5 @@
 {
   "title": "Prompt Charity",
-  "description": "Categorized, harness-agnostic prompts for reviewable plans before implementation.",
-  "promote": ["index*", "getting-started*", "prompt-template*", "use-cases/operations/gcp-customer-edge/index*"]
+  "description": "Complete, harness-agnostic prompts for reviewable plans before implementation.",
+  "promote": ["index*", "prompt-template*", "use-cases/gcp-customer-edge"]
 }

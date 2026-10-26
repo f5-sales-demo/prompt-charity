@@ -1,24 +1,26 @@
 ---
 title: GCP Customer Edge fallback guide
 description: A step-by-step Terraform recipe with the same planning, deployment and cleanup gates as the customer prompt.
+sidebar:
+  hidden: true
 ---
 
 export const promptLibraryRole = 'fallback';
 
 import { Code } from '@astrojs/starlight/components';
-import CanonicalCopyData from '../../../../components/CanonicalCopyData.astro';
-import versions from '../../../../_data/gcp-customer-edge/versions.tf?raw';
-import providers from '../../../../_data/gcp-customer-edge/providers.tf?raw';
-import variables from '../../../../_data/gcp-customer-edge/variables.tf?raw';
-import network from '../../../../_data/gcp-customer-edge/network.tf?raw';
-import firewall from '../../../../_data/gcp-customer-edge/firewall.tf?raw';
-import site from '../../../../_data/gcp-customer-edge/site.tf?raw';
-import token from '../../../../_data/gcp-customer-edge/token.tf?raw';
-import instance from '../../../../_data/gcp-customer-edge/instance.tf?raw';
-import outputs from '../../../../_data/gcp-customer-edge/outputs.tf?raw';
-import support from '../../../../_data/gcp-customer-edge/gcp-ce-support.py?raw';
+import CanonicalCopyData from '../../../components/CanonicalCopyData.astro';
+import versions from '../../../_data/gcp-customer-edge/versions.tf?raw';
+import providers from '../../../_data/gcp-customer-edge/providers.tf?raw';
+import variables from '../../../_data/gcp-customer-edge/variables.tf?raw';
+import network from '../../../_data/gcp-customer-edge/network.tf?raw';
+import firewall from '../../../_data/gcp-customer-edge/firewall.tf?raw';
+import site from '../../../_data/gcp-customer-edge/site.tf?raw';
+import token from '../../../_data/gcp-customer-edge/token.tf?raw';
+import instance from '../../../_data/gcp-customer-edge/instance.tf?raw';
+import outputs from '../../../_data/gcp-customer-edge/outputs.tf?raw';
+import support from '../../../_data/gcp-customer-edge/gcp-ce-support.py?raw';
 
-This guide supports [the complete customer prompt](/prompt-charity/en/use-cases/operations/gcp-customer-edge/). It
+This guide supports [the complete customer prompt](/prompt-charity/en/use-cases/gcp-customer-edge/). It
 creates one Secure Mesh Site v2 with separate SLO and SLI VPCs, outbound SLO NAT and one `n2-standard-8` VM without a
 public IP. It excludes HA and workloads. The nine files below are a reviewed starting recipe; choose customer inputs and
 re-resolve current release/image identities before deployment.
@@ -39,7 +41,7 @@ effective firewall policy. Higher-level deny rules may override the VPC rules in
 
 ### Optional GCP service account
 
-Use the [complete prompt's IAM preflight](/prompt-charity/en/use-cases/operations/gcp-customer-edge/) before local setup.
+Use the [complete prompt's IAM preflight](/prompt-charity/en/use-cases/gcp-customer-edge/) before local setup.
 Identify the caller, Terraform identity, service-account owning project, deployment project, quota project and credential
 method. Return five gates: identity selection, impersonation access, deployment permissions, APIs/quota project and
 CLI/ADC authentication. Each reports `PASS`, `BLOCKED` or `UNKNOWN`, evidence, observation time, owner and next action.
@@ -72,7 +74,7 @@ Use the actual selected values, keeping output private:
 ```bash
 python3 gcp-ce-support.py iam-preflight \
   --caller 'user:operator@example.com' \
-  --service-account 'ce@example-project.iam.gserviceaccount.com' \
+  --service-account '<SERVICE_ACCOUNT_EMAIL>' \
   --service-account-project example-project \
   --deployment-project example-deployment \
   --quota-project example-quota \
