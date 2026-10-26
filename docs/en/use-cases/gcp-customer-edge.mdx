@@ -3,7 +3,6 @@ title: Deploy a Customer Edge in GCP
 description: Plan, approve, deploy and verify one dual-interface F5 Distributed Cloud Customer Edge.
 ---
 
-import { createHash } from 'node:crypto';
 import { Code } from '@astrojs/starlight/components';
 import CanonicalCopyData from '../../components/CanonicalCopyData.astro';
 import prompt from '../../_data/prompts/gcp-customer-edge.txt?raw';
@@ -67,70 +66,11 @@ Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/gcp-customer-
 
 ## Qualification
 
-The current canonical prompt passed clean-room Kiro CLI, Kiro Desktop and two consecutive VS Code GitHub Copilot Chat
-runs on macOS with Claude Opus 5.5 on 2026-10-26. Each resumed after a separately approved IAM grant, passed deployment
-and completion gates, and independently verified teardown. These receipts qualify this exact candidate; discover current
-provider/image identities and recheck prerequisites for each new deployment.
+The current prompt passed Kiro CLI, Kiro Desktop and two VS Code GitHub Copilot Chat runs on macOS with Claude Opus 5.5
+on 2026-10-26. Each verified deployment, stable `ONLINE` status, SLO/SLI roles, a zero-change post-registration Terraform
+plan and independent cleanup. Recheck prerequisites and provider/image versions for each deployment.
 
-Current canonical SHA256: <code>{createHash('sha256').update(prompt, 'utf8').digest('hex')}</code>.
-
-| Harness | Current-hash run | Gates and cleanup | Sanitized evidence |
-| --- | --- | --- | --- |
-| Kiro CLI 2.33.1 / Claude Opus 5.5 on macOS | Clean-room CLI | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/kiro-cli-macos.json) |
-| Kiro Desktop 1.4.26 / Claude Opus 5.5 on macOS | Clean-room Desktop | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/kiro-desktop-macos.json) |
-| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Refreshed clean-room 1 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-3.json) |
-| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Refreshed clean-room 2 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-4.json) |
-
-<details>
-<summary>Qualification details and historical candidates</summary>
-
-The current prompt includes an evidence-based IAM preflight, administrator handoff and private checkpoint protocol.
-Readable-public-image permission uncertainty is resolved by a separately approved image/licence probe. New-network
-policy checks can use phased saved plans before VM provisioning; terminal and prompt-hash checks preserve resume evidence.
-Deterministic fixtures cover permission failures, uncertain responses, propagation deadlines and credential handling.
-The current canonical prompt passed one clean-room native Kiro CLI run, one native Kiro Desktop run and two
-consecutive clean-room VS Code GitHub Copilot Chat runs on macOS, completed on 2026-10-26 with Claude Opus 5.5.
-Each began with an empty workspace, detected missing caller impersonation, returned a private IAM-team request,
-paused without IAM or deployment mutations, and resumed the same native session after a separate operator grant.
-Kiro used Requirements-First Feature Specs with separately scoped planning-document approval. Copilot used native
-Plan mode without deliberate workspace or memory planning artifacts. Checkpoint creation and saved-plan execution
-had separate approvals; original propagation deadlines and installation receipts survived recovery.
-
-Each run completed inspected deployment, consecutive validated ONLINE observations at least 30 seconds apart,
-actual guest NIC/MAC/IP checks for ens4 SLO primary and ens5 SLI nonprimary, native and independent full
-normal refresh Terraform detailed exit code zero, a subsequent ONLINE check, and inspected teardown. Independent
-checks confirmed all 17 exact cloud absences and empty Terraform state. Regional Edge connectivity was recorded
-separately. All runs reused installed terraform-docs and preserved the 120 GB pd-balanced default. Caller grants
-were removed between runs; the task-owned service account and its project bindings were removed after qualification.
-Private test profiles supplied automatic tool permissions and the configured model. Customer instructions remain
-platform-neutral and retain approval boundaries. Raw evidence and failed attempts remain private.
-
-Two consecutive clean-room Mac VS Code GitHub Copilot Chat runs passed against the preceding canonical hash on
-2026-10-24. Their historical receipts remain unchanged and apply to SHA256
-`55c6826d0f68e2249f2268a75a7a6a5723a83d81c5b3655f29ba0e3d382ea977`.
-These results record the exact selected releases; every new deployment still discovers the current release and
-rechecks prerequisites.
-
-| Harness | Historical run | Gates and cleanup | Sanitized evidence |
-| --- | --- | --- | --- |
-| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Clean-room 1 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-1.json) |
-| VS Code 1.143.1 / Copilot Chat 0.71.0 / Claude Opus 5.5 on macOS | Clean-room 2 | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-2.json) |
-
-The earlier prompt completed three sequential fresh deployments on 2026-10-23. Each run began in native planning mode,
-received scoped implementation approval, passed all three completion gates, and finished independently verified teardown
-before the next run. These historical receipts apply to the earlier prompt hash below, not the revised prompt.
-
-Earlier live-qualified SHA256: `d6e09ba51d8b8299277acfc122a6a5596a5e654f250183530899d31e8570e8f3`.
-
-| Harness | Zone | Gates and cleanup | Sanitized evidence |
-| --- | --- | --- | --- |
-| Claude Code 2.1.308 on macOS | `us-east4-a` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/claude-code-macos.json) |
-| Codex CLI 0.162.1 on Ubuntu | `europe-west1-b` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/codex-cli-ubuntu.json) |
-| OpenCode 1.18.18 on Ubuntu | `asia-southeast1-a` | Passed | [Receipt](/prompt-charity/receipts/gcp-customer-edge/opencode-ubuntu.json) |
-
-Receipts record the exact provider/image identities, gate evidence, recovery notes and cleanup results. OpenCode used a
-task-local Google Vertex configuration with existing ADC. Failed and superseded attempts, sensitive state, metadata and
-raw transcripts remain private. These results qualify the earlier hash only; recheck prerequisites and current
-release/image identities for your own deployment.
-
-</details>
+Supporting receipts: [Kiro CLI](/prompt-charity/receipts/gcp-customer-edge/kiro-cli-macos.json),
+[Kiro Desktop](/prompt-charity/receipts/gcp-customer-edge/kiro-desktop-macos.json),
+[Copilot run 1](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-3.json) and
+[Copilot run 2](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-4.json).
