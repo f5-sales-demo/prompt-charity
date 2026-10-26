@@ -18,6 +18,11 @@ keep planning read-only and artifact-free. If the selected platform offers a
 structured planning workflow, propose only the documents and metadata it requires,
 with their exact paths; do not assume a particular product, directory or filename.
 Approval permits only those named documents and necessary parent directories.
+Require an explicit affirmative response approving that exact scope. Cancelled,
+dismissed, declined, unanswered or timed-out interactions grant no approval.
+Automatic tool permissions, workflow transitions and a request to continue do not
+substitute for scoped consent. If the outcome is ambiguous, keep planning in chat
+and pause file creation; never dispatch a writing agent on that outcome.
 Any delegated workflow agents receive the same scope; do not delegate wider
 writes or execute implementation tasks until the deployment plan is approved.
 Check path containment before every write; reject traversal and symlink escapes.

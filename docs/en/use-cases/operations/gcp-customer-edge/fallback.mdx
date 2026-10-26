@@ -111,8 +111,12 @@ backups or stdout/stderr files. Capture both streams in memory and report only n
 redacting or deleting a capture later does not authorize creating it. Before any native planning documents are created, offer a
 separate planning-file approval naming the absolute workspace and exact relative paths. Use only the documents
 and metadata required by the selected platform's structured planning workflow. Approval includes only those
-named files and necessary parent directories. Workflow agents inherit that scope; implementation tasks wait for
-deployment approval. Keep every acceptance gate in concise documents and adapt complete write arguments to the
+named files and necessary parent directories. Require an explicit affirmative response approving that exact scope.
+Cancelled, dismissed, declined, unanswered or timed-out
+interactions grant no approval. Automatic tool permissions and workflow transitions cannot substitute for scoped
+consent; keep an ambiguous planning outcome in chat and pause file creation and writing-agent dispatch until
+explicit planning-file approval. Workflow agents inherit that scope; implementation tasks wait for deployment
+approval. Keep every acceptance gate in concise documents and adapt complete write arguments to the
 platform's supported limits. Verify actual files; retain and repair failed requests instead of repeating them
 unchanged. A preview never proves a write. Reject traversal and symlink escapes and inventory hidden files at
 each approval boundary. Return all five gates and the private IAM-team request in chat. Authentication,

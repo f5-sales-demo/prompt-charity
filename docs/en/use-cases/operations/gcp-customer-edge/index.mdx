@@ -46,6 +46,8 @@ Enable native planning mode in your chosen agent, then copy this entire block. R
 
 Planning is read-only and artifact-free by default. If your platform requires planning documents or metadata,
 review a separate approval naming the absolute workspace and every relative path before any files are created.
+Require an explicit affirmative response to that scope; cancelled, dismissed, declined, unanswered or timed-out
+interactions grant no approval. Automatic tool permissions and workflow transitions cannot substitute for consent.
 Workflow agents inherit only that scope; implementation waits for deployment approval. All five prerequisites
 and the private IAM-team request still appear in chat. Planning-file approval does not authorize authentication,
 installations, checkpoints, IAM changes or deployment. Checkpoint schema version 2 binds planning-file approval

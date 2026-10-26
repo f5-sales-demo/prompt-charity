@@ -929,7 +929,17 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
                 [],
             )
             saved = json.loads(checkpoint.read_text())
-            for approval in (True, self.sentinel):
+            for approval in (
+                True,
+                self.sentinel,
+                "dismissed",
+                "cancelled",
+                "declined",
+                "unanswered",
+                "timed-out",
+                {"outcome": "dismissed"},
+                None,
+            ):
                 saved["approvals"]["planning_files"] = approval
                 checkpoint.write_text(json.dumps(saved))
                 with self.assertRaises(ValueError):
