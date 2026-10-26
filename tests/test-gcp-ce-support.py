@@ -2,13 +2,14 @@
 
 # Standard-library unittest keeps the shell test entrypoint dependency-free.
 # ruff: noqa: INP001, PT009, PT027
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-lines
 import contextlib
 import hashlib
 import importlib.util
 import io
 import json
 import os
+import re
 import shlex
 import tempfile
 import unittest
@@ -234,7 +235,7 @@ class SupportTests(unittest.TestCase):
         self.assertNotIn("eyJhbG", cleaned)
 
 
-class IamTests(unittest.TestCase):
+class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
     def setUp(self):
         self.selection = {
             "caller": "user:operator@example.com",
@@ -610,6 +611,345 @@ class IamTests(unittest.TestCase):
                 )["approvals"]["deployment"]
             )
 
+    def test_planning_approval_is_separate_and_scope_bound(self):
+        result = self.preflight()
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            prompt = root / "prompt.txt"
+            prompt.write_text("synthetic prompt")
+            checkpoint = root / "checkpoint.json"
+            scope = {
+                "workspace": str(workspace),
+                "paths": [
+                    ".kiro/specs/gcp-customer-edge/requirements.md",
+                    ".kiro/specs/gcp-customer-edge/.config.kiro",
+                ],
+            }
+            with self.assertRaises(ValueError):
+                support.save_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    result,
+                    {"planning_files": True},
+                    [],
+                    planning_scope=scope,
+                )
+            self.assertFalse(checkpoint.exists())
+            with self.assertRaises(ValueError):
+                support.save_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    result,
+                    {"local_setup": True, "planning_files": True},
+                    [],
+                )
+            support.save_iam_checkpoint(
+                checkpoint,
+                prompt,
+                result,
+                {"local_setup": True, "planning_files": True, "deployment": True},
+                ["a" * 64],
+                deadline=600,
+                planning_scope=scope,
+            )
+            saved = json.loads(checkpoint.read_text())
+            self.assertEqual(saved["schema_version"], 2)
+            resumed = support.resume_iam_checkpoint(
+                checkpoint,
+                prompt,
+                self.selection,
+                self.adapter().observe,
+                planning_scope=scope,
+            )
+            self.assertTrue(resumed["approvals"]["planning_files"])
+            self.assertTrue(resumed["approvals"]["deployment"])
+            other = root / "other"
+            other.mkdir()
+            for new_scope in (
+                None,
+                {**scope, "workspace": str(other)},
+                {**scope, "paths": [".kiro/specs/gcp-customer-edge/.config.kiro"]},
+            ):
+                changed = support.resume_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    self.selection,
+                    self.adapter().observe,
+                    planning_scope=new_scope,
+                )
+                self.assertTrue(changed["planning_scope_changed"])
+                self.assertFalse(changed["approvals"]["planning_files"])
+                self.assertFalse(changed["approvals"]["deployment"])
+                self.assertEqual(changed["installation_receipts"], ["a" * 64])
+                self.assertEqual(changed["propagation_deadline"], 600)
+            prompt.write_text("revised prompt")
+            changed = support.resume_iam_checkpoint(
+                checkpoint,
+                prompt,
+                self.selection,
+                self.adapter().observe,
+                planning_scope=scope,
+            )
+            self.assertFalse(changed["approvals"]["planning_files"])
+
+    def test_canonical_checkpoint_contract_matches_writer_and_reader(self):
+        prompt = Path(__file__).resolve().parents[1] / "prompts/gcp-customer-edge.txt"
+        match = re.search(
+            r"Checkpoint v2 core JSON template:\s*```json\n(.*?)\n```",
+            prompt.read_text(),
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match, "Canonical prompt must define checkpoint fields")
+        assert match is not None
+        template = json.loads(match[1])
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            workspace = root / "workspace"
+            workspace.mkdir(mode=0o700)
+            scope = {"workspace": str(workspace), "paths": ["planning/requirements.md"]}
+            approvals = {
+                "local_setup": True,
+                "planning_files": True,
+                "iam_administration": False,
+                "deployment": True,
+            }
+            result = support.iam_preflight(
+                self.selection, lambda _: ("PASS", "verified fixture identity")
+            )
+            reference = root / "reference.json"
+            support.save_iam_checkpoint(
+                reference,
+                prompt,
+                result,
+                approvals,
+                ["a" * 64],
+                600,
+                planning_scope=scope,
+            )
+            written = json.loads(reference.read_text())
+            self.assertEqual(set(template), set(written))
+            self.assertEqual(set(template["selection"]), set(support.SELECTION_FIELDS))
+            self.assertEqual(
+                [row["gate"] for row in template["gates"]], list(support.IAM_GATES)
+            )
+            for row in template["gates"]:
+                self.assertEqual(set(row), set(written["gates"][0]))
+            self.assertEqual(set(template["approvals"]), set(approvals))
+            self.assertTrue(
+                all(isinstance(x, bool) for x in template["approvals"].values())
+            )
+            template.update(written)
+            generated = root / "client.json"
+            descriptor = os.open(generated, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descriptor, "w") as stream:
+                json.dump(template, stream)
+            observed: list[str] = []
+
+            def observe(gate: str) -> tuple[str, str]:
+                observed.append(gate)
+                return "PASS", "fresh observation"
+
+            resumed = support.resume_iam_checkpoint(
+                generated,
+                prompt,
+                self.selection,
+                observe,
+                planning_scope=scope,
+            )
+            self.assertEqual(observed, list(support.IAM_GATES))
+            self.assertEqual(resumed["approvals"], approvals)
+            self.assertEqual(resumed["installation_receipts"], ["a" * 64])
+            self.assertEqual(resumed["propagation_deadline"], 600)
+
+    def test_planning_scope_accepts_explicit_platform_neutral_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            paths = ["plan.md", "planning/requirements.md", ".config.json"]
+            scope = {"workspace": str(root), "paths": paths}
+            self.assertEqual(
+                support.validate_planning_scope(scope),
+                {"workspace": str(root.resolve()), "paths": sorted(paths)},
+            )
+            self.assertEqual(list(root.iterdir()), [])
+            with self.assertRaises(ValueError):
+                support.validate_planning_scope({**scope, "paths": ["."]})
+            (root / "planning").mkdir()
+            with self.assertRaises(ValueError):
+                support.validate_planning_scope({**scope, "paths": ["planning"]})
+
+    def test_planning_scope_rejects_unsafe_paths_and_symlink_changes(self):
+        result = self.preflight()
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            prompt = root / "prompt.txt"
+            prompt.write_text("synthetic prompt")
+            checkpoint = root / "checkpoint.json"
+            scope = {
+                "workspace": str(workspace),
+                "paths": [".kiro/specs/gcp-customer-edge/.config.kiro"],
+            }
+            for path in (
+                "../.config.kiro",
+                ".kiro/../.config.kiro",
+                "/outside/.config.kiro",
+                ".kiro//specs/gcp-customer-edge/tasks.md",
+                "..\\.config.kiro",
+                self.sentinel + "\n",
+            ):
+                with self.subTest(path=path), self.assertRaises(ValueError):
+                    support.save_iam_checkpoint(
+                        checkpoint,
+                        prompt,
+                        result,
+                        {"local_setup": True, "planning_files": True},
+                        [],
+                        planning_scope={**scope, "paths": [path]},
+                    )
+                self.assertFalse(checkpoint.exists())
+            support.save_iam_checkpoint(
+                checkpoint,
+                prompt,
+                result,
+                {"local_setup": True, "planning_files": True, "deployment": True},
+                [],
+                planning_scope=scope,
+            )
+            (workspace / ".kiro/specs/gcp-customer-edge").mkdir(parents=True)
+            (workspace / ".kiro/specs/gcp-customer-edge/.config.kiro").symlink_to(
+                root / "outside"
+            )
+            with self.assertRaises(ValueError):
+                support.resume_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    self.selection,
+                    self.adapter().observe,
+                    planning_scope=scope,
+                )
+            checkpoint.unlink()
+            workspace = root / "linked-workspace"
+            workspace.mkdir()
+            scope["workspace"] = str(workspace)
+            (workspace / ".kiro").symlink_to(root)
+            with self.assertRaises(ValueError):
+                support.save_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    result,
+                    {"local_setup": True, "planning_files": True},
+                    [],
+                    planning_scope={
+                        **scope,
+                        "paths": [".kiro/specs/gcp-customer-edge/tasks.md"],
+                    },
+                )
+            self.assertFalse(checkpoint.exists())
+
+    def test_legacy_checkpoint_never_infers_planning_approval(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            prompt = root / "prompt.txt"
+            prompt.write_text("synthetic prompt")
+            checkpoint = root / "checkpoint.json"
+            support.save_iam_checkpoint(
+                checkpoint,
+                prompt,
+                self.preflight(),
+                {"local_setup": True, "deployment": True},
+                ["a" * 64],
+                deadline=600,
+            )
+            saved = json.loads(checkpoint.read_text())
+            saved["schema_version"] = 1
+            saved.pop("planning_scope")
+            checkpoint.write_text(json.dumps(saved))
+            resumed = support.resume_iam_checkpoint(
+                checkpoint,
+                prompt,
+                self.selection,
+                self.adapter().observe,
+            )
+            self.assertFalse(resumed["approvals"]["planning_files"])
+            self.assertTrue(resumed["approvals"]["deployment"])
+            self.assertEqual(resumed["propagation_deadline"], 600)
+            saved["schema_version"] = 99
+            checkpoint.write_text(json.dumps(saved))
+            with self.assertRaises(ValueError):
+                support.resume_iam_checkpoint(
+                    checkpoint,
+                    prompt,
+                    self.selection,
+                    self.adapter().observe,
+                )
+
+    def test_checkpoint_rejects_malformed_planning_scope_and_approval(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            root.chmod(0o700)
+            prompt = root / "prompt.txt"
+            prompt.write_text("synthetic prompt")
+            checkpoint = root / "checkpoint.json"
+            result = self.preflight()
+            scope: dict = {
+                "workspace": str(root),
+                "paths": [".kiro/specs/gcp-customer-edge/tasks.md"],
+            }
+            for invalid in (
+                {},
+                {**scope, "workspace": "relative"},
+                {**scope, "paths": []},
+                {**scope, "paths": scope["paths"] * 2},
+                {**scope, "paths": [None]},
+                {**scope, "paths": scope["paths"][0]},
+                {**scope, "credential": self.sentinel},
+            ):
+                with self.subTest(scope=invalid), self.assertRaises(ValueError):
+                    support.save_iam_checkpoint(
+                        checkpoint,
+                        prompt,
+                        result,
+                        {"local_setup": True, "planning_files": True},
+                        [],
+                        planning_scope=invalid,
+                    )
+                self.assertFalse(checkpoint.exists())
+            support.save_iam_checkpoint(
+                checkpoint,
+                prompt,
+                result,
+                {"local_setup": True, "deployment": True},
+                [],
+            )
+            saved = json.loads(checkpoint.read_text())
+            for approval in (
+                True,
+                self.sentinel,
+                "dismissed",
+                "cancelled",
+                "declined",
+                "unanswered",
+                "timed-out",
+                {"outcome": "dismissed"},
+                None,
+            ):
+                saved["approvals"]["planning_files"] = approval
+                checkpoint.write_text(json.dumps(saved))
+                with self.assertRaises(ValueError):
+                    support.resume_iam_checkpoint(
+                        checkpoint,
+                        prompt,
+                        self.selection,
+                        self.adapter().observe,
+                    )
+
     def test_adc_quota_conflicts_and_independent_read(self):
         self.responses["adc_metadata"] = {
             "type": "impersonated_service_account",
@@ -650,7 +990,7 @@ class IamTests(unittest.TestCase):
                 "https://iam.googleapis.com/v1/projects/-/serviceAccounts/"
                 + self.selection["service_account"]
                 + ":testIamPermissions",
-                self.sentinel,
+                self.sentinel + "\n",
                 {"permissions": [support.IAM_PERMISSION]},
             )
             self.assertEqual(request, (403, b""))

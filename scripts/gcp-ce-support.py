@@ -1,6 +1,6 @@
 """Fallback helpers: exact checksums and bounded, fail-closed XC polling."""
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-lines
 
 import argparse
 import hashlib
@@ -412,6 +412,64 @@ def iam_team_request(result: dict) -> dict | None:
     }
 
 
+CHECKPOINT_VERSION = 2
+
+
+def validate_planning_scope(scope: dict | None) -> dict | None:
+    """Normalize an explicit allowlist without creating any directories or files."""
+    if scope is None:
+        return None
+    if not isinstance(scope, dict) or set(scope) != {"workspace", "paths"}:
+        msg = "Planning scope requires only workspace and paths"
+        raise ValueError(msg)
+    workspace, paths = scope["workspace"], scope["paths"]
+    if (
+        not isinstance(workspace, str)
+        or not Path(workspace).is_absolute()
+        or not isinstance(paths, list)
+    ):
+        msg = "Planning scope requires an absolute workspace and unique approved relative paths"
+        raise ValueError(msg)
+    if (
+        not paths
+        or any(not isinstance(path, str) for path in paths)
+        or len(paths) != len(set(paths))
+        or any(
+            not path
+            or Path(path).is_absolute()
+            or "\\" in path
+            or any(part in {"", ".", ".."} for part in path.split("/"))
+            or re.search(r"[\x00-\x1f\x7f]", path)
+            for path in paths
+        )
+    ):
+        msg = "Planning paths must be a nonempty unique list of safe relative filenames"
+        raise ValueError(msg)
+    root = Path(workspace)
+    if not root.is_dir() or root.is_symlink() or ".." in root.parts:
+        msg = "Planning workspace must be an existing directory without traversal or symlink"
+        raise ValueError(msg)
+    root = root.resolve()
+    for path in paths:
+        target = root / path
+        if target.is_dir():
+            msg = "Planning paths must name files, not directories"
+            raise ValueError(msg)
+        # Check existing parent links as well as the final file, even when absent.
+        if not target.resolve().is_relative_to(root):
+            msg = "Planning path escapes its approved workspace"
+            raise ValueError(msg)
+        # Even an internal link could redirect a write to an unapproved filename.
+        if any(
+            parent.is_symlink()
+            for parent in (target, *target.parents)
+            if parent != root and parent.is_relative_to(root)
+        ):
+            msg = "Planning paths must not contain symlinks"
+            raise ValueError(msg)
+    return {"workspace": str(root), "paths": sorted(paths)}
+
+
 def save_iam_checkpoint(
     path: Path,
     prompt: Path,
@@ -419,6 +477,8 @@ def save_iam_checkpoint(
     approvals: dict,
     installations: list[str],
     deadline: float | None = None,
+    *,
+    planning_scope: dict | None = None,
 ) -> None:
     """Save only selected protocol fields after separate local-setup approval."""
     if approvals.get("local_setup") is not True:
@@ -427,23 +487,28 @@ def save_iam_checkpoint(
     if path.parent.stat().st_mode & 0o077 or path.is_symlink():
         msg = "Checkpoint parent must be private and target must not be a symlink"
         raise ValueError(msg)
-    allowed = {"iam_administration", "local_setup", "deployment"}
+    allowed = {"iam_administration", "local_setup", "deployment", "planning_files"}
     if set(approvals) - allowed or any(
         not isinstance(value, bool) for value in approvals.values()
     ):
         msg = "Approvals must be scoped boolean records"
+        raise ValueError(msg)
+    scope = validate_planning_scope(planning_scope)
+    if approvals.get("planning_files") is True and scope is None:
+        msg = "Planning-file approval requires an explicit workspace/path scope"
         raise ValueError(msg)
     # Installation records are SHA256 receipts, not free-form secret-bearing logs.
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in installations):
         msg = "Installation receipts must be SHA256 digests"
         raise ValueError(msg)
     checkpoint = {
-        "schema_version": 1,
+        "schema_version": CHECKPOINT_VERSION,
         "prompt_sha256": hashlib.sha256(prompt.read_bytes()).hexdigest(),
         "selection": result["selection"],
         "gates": result["gates"],
         "outstanding_request": iam_team_request(result),
         "approvals": approvals,
+        "planning_scope": scope,
         "installation_receipts": installations,
         "propagation_deadline": deadline,
     }
@@ -454,7 +519,12 @@ def save_iam_checkpoint(
 
 
 def resume_iam_checkpoint(
-    path: Path, prompt: Path, selection: dict, observe: Callable[[str], tuple[str, str]]
+    path: Path,
+    prompt: Path,
+    selection: dict,
+    observe: Callable[[str], tuple[str, str]],
+    *,
+    planning_scope: dict | None = None,
 ) -> dict:
     """Always obtain fresh gates; identity or prompt changes revoke deployment approval."""
     if (
@@ -465,19 +535,54 @@ def resume_iam_checkpoint(
         msg = "Checkpoint and parent must be private"
         raise ValueError(msg)
     checkpoint = json.loads(path.read_text(encoding="utf-8"))
+    version = checkpoint.get("schema_version")
+    if (
+        isinstance(version, bool)
+        or not isinstance(version, int)
+        or version not in {1, CHECKPOINT_VERSION}
+    ):
+        msg = "Unsupported IAM checkpoint schema"
+        raise ValueError(msg)
+    saved_scope = (
+        validate_planning_scope(checkpoint.get("planning_scope"))
+        if version == CHECKPOINT_VERSION
+        else None
+    )
+    approvals = dict(checkpoint["approvals"])
+    allowed = {"iam_administration", "local_setup", "deployment", "planning_files"}
+    if (
+        set(approvals) - allowed
+        or any(not isinstance(value, bool) for value in approvals.values())
+        or approvals.get("local_setup") is not True
+    ):
+        msg = "Invalid or unscoped checkpoint approvals"
+        raise ValueError(msg)
+    if (
+        version == CHECKPOINT_VERSION
+        and approvals.get("planning_files") is True
+        and saved_scope is None
+    ):
+        msg = "Planning-file approval requires an explicit workspace/path scope"
+        raise ValueError(msg)
+    scope = validate_planning_scope(planning_scope)
+    scope_changed = saved_scope != scope
     result = iam_preflight(selection, observe)
     changed = (
         checkpoint["selection"] != selection
         or checkpoint["prompt_sha256"]
         != hashlib.sha256(prompt.read_bytes()).hexdigest()
     )
-    approvals = dict(checkpoint["approvals"])
-    if changed:
+    if version == 1:
+        approvals["planning_files"] = False
+    if changed or scope_changed:
         approvals["deployment"] = False
+        approvals["planning_files"] = False
     return {
         "preflight": result,
         "approvals": approvals,
         "selection_or_prompt_changed": changed,
+        "planning_scope_changed": scope_changed,
+        "planning_scope": scope,
         "installation_receipts": checkpoint["installation_receipts"],
         "propagation_deadline": checkpoint["propagation_deadline"],
     }

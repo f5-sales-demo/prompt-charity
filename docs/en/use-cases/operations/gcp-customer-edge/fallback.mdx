@@ -105,11 +105,40 @@ rule. Do not bypass policies or use an unreviewed target/recomputed plan.
 After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
 hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
 receipts and propagation deadline. Never save credential values or full policies.
-Checkpoint-only approval permits only that checkpoint, not a native session-memory plan file such as
-`plan.md` in native session memory. Disable planning file/memory-writing and delegation tools for the session and keep the
-plan in chat. Automatic platform chat/tool history is allowed. The helper provides
+Checkpoint-only approval permits only that checkpoint, not a native session-memory `plan.md` or planning documents.
+Keep planning read-only and artifact-free by default. Planning-file consent never permits temporary diagnostics,
+backups or stdout/stderr files. Capture both streams in memory and report only non-secret categories/status;
+redacting or deleting a capture later does not authorize creating it. Before any native planning documents are created, offer a
+separate planning-file approval naming the absolute workspace and exact relative paths. Use only the documents
+and metadata required by the selected platform's structured planning workflow. Approval includes only those
+named files and necessary parent directories. Require an explicit affirmative response approving that exact scope.
+Cancelled, dismissed, declined, unanswered or timed-out
+interactions grant no approval. Automatic tool permissions and workflow transitions cannot substitute for scoped
+consent; keep an ambiguous planning outcome in chat and pause file creation and writing-agent dispatch until
+explicit planning-file approval. Workflow agents inherit that scope; implementation tasks wait for deployment
+approval. Keep every acceptance gate in concise documents and adapt complete write arguments to the
+platform's supported limits. Verify actual files; retain and repair failed requests instead of repeating them
+unchanged. A preview never proves a write. Reject traversal and symlink escapes and inventory hidden files at
+each approval boundary. Return all five gates and the private IAM-team request in chat. Authentication,
+installations, checkpoints, IAM administration, licence probes and deployment retain separate approvals.
+Planning-file approval alone cannot authorize checkpoint creation.
+Automatic platform chat/tool history is allowed. The helper provides
 `save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
-invalidates deployment approval when selection or prompt changes. Preserve approved installation receipts across
+invalidates deployment approval when selection or prompt changes. Checkpoint schema version 2 records separate
+`planning_files` approval and `planning_scope` with `workspace` and an allowlisted `paths` list. Pass that scope as
+the keyword argument `planning_scope` to both helper functions; they validate containment without creating files.
+Use the canonical prompt's JSON template for all platforms. The core fields are `schema_version`,
+`prompt_sha256`, `selection`, `gates`, `outstanding_request`, `approvals`, `planning_scope`,
+`installation_receipts` and `propagation_deadline`. The six string selection fields are `caller`,
+`service_account`, `service_account_project`, `deployment_project`, `quota_project` and `credential_method`.
+The approval map contains only boolean `local_setup`, `planning_files`, `iam_administration` and `deployment`;
+`local_setup` records checkpoint persistence only. It cannot authorize other setup. Planning scope is null or
+an object containing the exact `workspace` and approved `paths`. Use the five gate identifiers and row fields
+from the template. Preserve the numeric Unix deadline: first administrator confirmation plus 600 seconds.
+Do not rename fields, nest status objects in the boolean approval map or copy placeholder values.
+Legacy version 1 remains readable and never implies planning-file approval. Workspace/path changes revoke planning-file and
+dependent deployment approval; resume revalidates existing path links. Prompt changes also revoke planning approval.
+Preserve approved installation receipts across
 restarts. Administrator confirmation initiates rechecks; passing authentication never authorizes deployment.
 Use a private form-encoded POST to `https://oauth2.googleapis.com/tokeninfo`, and omit `x-goog-user-project` from public
 OAuth/OpenID identity requests. The quota header can make OpenID userinfo fail with 403 despite working impersonation;
@@ -172,6 +201,13 @@ probe. All following steps belong to that approved implementation.
 
 ## 2. Resolve and install the exact provider
 
+On an MDM-managed Mac, use no sudo or privilege requests. Reuse installed tools; any approved nonprivileged
+installation must use the IT-controlled brew. Diagnose wrapper TLS failures using existing corporate CA path
+metadata and CLI settings, with the existing trust source scoped to the affected process or an in-memory SSL
+context. Preserve verification and system trust; create no CA files during artifact-free planning. Recheck the
+authenticated API identity and private repository access before inferring invalid credentials from auth-status
+output or requesting another login.
+
 Enumerate all GitHub release pages, filter out drafts, include prereleases, and select the newest publication timestamp.
 Do not copy stale version constraints from the provider README or use a loose constraint. The following illustrates a
 POSIX shell with `gh`, `jq`, `python3`, and archive tooling; select appropriate native commands on your own host.
@@ -221,10 +257,15 @@ a failed probe as approval to alter marketplace policy.
 After approval, use `terraform/` and, when enabled, `docs/` relative to the active private workspace. Confirm the
 Terraform files, saved plan binaries and review JSON under `terraform/plans/`, and any generated `docs/terraform.md`
 appear in its explorer. Keep these artifacts private with permissions instead of hiding them in a sibling directory. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
-creates no workspace files. The defaults intentionally require explicit project, region, zone,
+creates no workspace files except separately approved native planning documents. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
+
+The registration token can leave the entire VM metadata map unknown in a saved plan. Verify the reviewed source
+and saved-plan references, then require private live checks of the static keys, matching token-only bootstrap,
+root ownership, 0600 mode and state sensitivity immediately after apply. An unknown map does not waive those checks.
+Include durable registration-deadline and poll-state paths in artifact approval before writing them.
 
 Check terraform-docs first. If installed, generate `docs/terraform.md` during approved file preparation without another
 docs-choice question. If missing, first ask whether generated docs are wanted and explain that yes requires installing
@@ -234,6 +275,10 @@ regenerate after configuration changes, covering requirements, providers, resour
 credentials, raw state or plan contents. Retain the files and any generated docs through teardown for review.
 
 The VM blocks inherited project-wide SSH keys. Any optional SSH uses the explicitly supplied key.
+Inspect the pinned image's `guestOsFeatures`. When `UEFI_COMPATIBLE` is absent, omit `shielded_instance_config`
+entirely. An explicit all-false block can cause perpetual drift because the API omits unsupported settings.
+Resolve that with a reviewed configuration-only removal and a fresh no-change plan; do not hide it with lifecycle
+exclusions or repeatedly apply it.
 
 The operating CE uses a **120 GB `pd-balanced` boot disk by default**, rather than the source image minimum.
 [F5's sizing reference](https://docs.cloud.f5.com/docs-v2/multi-cloud-network-connect/reference/ce-site-size-ref)

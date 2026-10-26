@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "prompt_sha256": "47e27ed2868e4141bd42c39319297d34990ad4226874f868f4e06a6943278342",
+  "run": "current-hash clean-room qualification",
+  "harness": {
+    "name": "Kiro CLI",
+    "version": "2.33.1",
+    "os": "macOS",
+    "model": "claude-opus-5-5",
+    "native_planning_mode": true,
+    "same_session_implementation": true,
+    "private_profile": true,
+    "automatic_test_tool_permissions": true,
+    "wrapper": {
+      "adapter_sha256": "d7bdb6bda0ef48f136c980f9e8fbbbf16c80a39992e0d0b976f4668e224387cc",
+      "runtime_source_hashes": {
+        "addon.py": "985c323aa78d60a3b250063967c814f8fbf16178fd7e327a662a31c352a8c4bd",
+        "mcp_fixture.py": "a928d25f1f816d606699eca821a8794488df47cba4f8795bd61027ed7fef4046",
+        "responses.py": "3c3de4c0975c59ca57c7ef4cb819293f119b7488004d995fe8dd929a50942ec8",
+        "live_protocol_check.py": "9add04c28343231dae31a88f24d392a29911c979c30501cecc205a2684a94051",
+        "adapter.py": "d7bdb6bda0ef48f136c980f9e8fbbbf16c80a39992e0d0b976f4668e224387cc",
+        "new_run.py": "a52192fbb4d8681333e3fc1d4ccd3303cebea630594918c484c72c86f79c0032",
+        "serve.py": "931b40ccf15a5f05c47949eeb6520a353fe769ee082abfe4ad3b6b4e09f86bde",
+        "attachments.py": "ff05170df10df007a620cba48be82d324a3afce62f8c450ecc85c79a1fb72ccf",
+        "installed_wire_check.py": "78b04587111062ef11426129790ff086c652d4097c7953774dec0684bff35eff",
+        "completions.py": "be7e0068a5f862870e840dfe93f6616a66af5211387bbca540c417e949b95c17",
+        "launch.py": "fc267482fee014f78e13ec1178437c76cb81119396179ff4825c7b8b941697cd",
+        "herdr_driver.py": "fbcf9d7ae3bff97b86f65133f138c99298f32e3ee75ede0f26e8e4ebc75ada45",
+        "run_selected.py": "579a2bc98395bdd73fbe14448b29fba3ef613f03637e14a2336dafd6a52c0960",
+        "desktop_entry.py": "0c72c25a50ccc5029045fb899f91f7dc388599899a5e4f72ea58a7644e1133fb",
+        "coverage_report.py": "8205f66741cbb8ddaac1ff07e78e16964272a7101046caa9eeb739077b45a16a",
+        "terminal_scroll_check.py": "42f18dcce23aac09045489fcc59abc86fa9fa5358269b6ec62637cd38faafcee",
+        "desktop.py": "fd9121d818fe45a0fc239e2aec59869c0eb85e57247a241987208d29e10583bd"
+      }
+    },
+    "upstream_model": "claude-opus-5-5",
+    "anthropic_messages_protocol": true
+  },
+  "planning": {
+    "empty_start_directory": true,
+    "missing_impersonation_detected": true,
+    "private_iam_team_request_produced": true,
+    "checkpoint_approval_separate": true,
+    "original_confirmation_deadline_preserved": true,
+    "fresh_permission_token_identity_checks": true,
+    "native_requirements_first_spec": true,
+    "planning_file_approval_separate": true,
+    "planning_scope_documents": 4
+  },
+  "provider": {
+    "version": "0.9.7",
+    "prerelease": true,
+    "sha256": "010b7d729df3afff42dcf7448253af3b297967c63df0249b4fdc08f7cdc1e679",
+    "binary_sha256": "25f26cb13dcf331613352dc319b4284f4bf493c76c85746942d63a7d33508696",
+    "latest_catalog_discovered": true
+  },
+  "image": {
+    "name": "f5xc-ce-crt-20260801-0205-byol",
+    "immutable_id": "1689146860273445475"
+  },
+  "gates": {
+    "stable_online": true,
+    "independent_online_gap_seconds": 30.867561101913452,
+    "ens4_slo_primary": true,
+    "ens5_sli_nonprimary": true,
+    "independent_guest_nic_mac_ip_match": true,
+    "native_detailed_exit_code": 0,
+    "independent_detailed_exit_code": 0,
+    "online_rechecked_after_zero_plan": true
+  },
+  "disk": {
+    "provisioned_gb": 120,
+    "type": "pd-balanced",
+    "future_upgrade_test_performed": false
+  },
+  "regional_edges": {
+    "recorded_separately": true,
+    "count": 2
+  },
+  "teardown": {
+    "managed_deletes": 15,
+    "independent_exact_absence_checks": 17,
+    "all_absence_response_shapes_validated": true,
+    "state_empty": true
+  },
+  "evidence": {
+    "raw_transcripts_screenshots_states_and_iam_details": "private",
+    "native_export_supported_and_captured": true,
+    "credential_scan": "passed",
+    "full_initial_input_fidelity": true,
+    "private_success_receipt_sha256": "d56a02c5af04b0a8a30a0b3ecf1a0c3304225857ee382770eb05109ec7f0c7a1",
+    "private_final_cleanup_receipt_sha256": "47f447c78e5e2dfbd452d837490a987961996c84ac41009b50a17bb72541ac83"
+  },
+  "iam_fixture_cleanup": {
+    "status": "passed",
+    "caller_grant_removed_between_runs": true,
+    "fresh_permission_missing_and_token_mint_denied": true,
+    "task_service_account_exact_absence": true,
+    "task_service_account_inventory_absence": true,
+    "task_project_bindings_absent": true
+  },
+  "tools": {
+    "terraform": "1.17.0",
+    "google_provider": "8.8.1",
+    "random_provider": "3.9.1",
+    "terraform_docs": "0.24.0",
+    "installed_terraform_docs_reused": true
+  }
+}

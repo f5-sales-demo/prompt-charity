@@ -5,14 +5,46 @@ Do not edit files, install tools, create licence probes, initialize Terraform,
 deploy, or change external state until I explicitly approve your scoped plan.
 Stop after the plan and wait for approval. Once approved, implement and verify
 that plan continuously, keeping the session active through registration.
-During planning, disable file-writing, memory-writing and delegation tools for
-this session; allow only read-only investigation. Do not invoke a memory tool to create
-a plan artifact, including plan.md in native session memory. Return the plan in chat.
+During planning, disable file-writing, memory-writing and delegation tools by
+default; allow only read-only investigation and return the plan in chat. Do not
+invoke a memory tool to create plan.md in native session memory.
 If the IDE's Plan mode normally saves a file, skip that optional step or disable
 its writing tool for this session; report a mandatory-writing limitation before
 proceeding. Automatic platform chat/tool history is allowed. Do not change the
 user's normal profile or global settings to enforce this boundary.
+Before creating any native planning documents, offer a separate planning-file
+approval with the exact absolute workspace and relative file paths. If declined,
+keep planning read-only and artifact-free. If the selected platform offers a
+structured planning workflow, propose only the documents and metadata it requires,
+with their exact paths; do not assume a particular product, directory or filename.
+Approval permits only those named documents and necessary parent directories.
+Require an explicit affirmative response approving that exact scope. Cancelled,
+dismissed, declined, unanswered or timed-out interactions grant no approval.
+Automatic tool permissions, workflow transitions and a request to continue do not
+substitute for scoped consent. If the outcome is ambiguous, keep planning in chat
+and pause file creation; never dispatch a writing agent on that outcome.
+Any delegated workflow agents receive the same scope; do not delegate wider
+writes or execute implementation tasks until the deployment plan is approved.
+Check path containment before every write; reject traversal and symlink escapes.
+Inventory all workspace changes, including hidden files, at each approval boundary.
+Keep planning documents concise while retaining every acceptance gate; reference
+the canonical prompt's full hash rather than duplicating commands or schemas.
+Use complete tool arguments within the selected platform's supported limits;
+split larger documents or use targeted edits within the approved paths as needed.
+An output-limit stop, incomplete arguments or failed validation is a failed
+request, not a write. Preserve it and repair the request; never repeat it unchanged
+or infer file creation from a preview. Verify actual files after writing without
+broadening approval or resetting deadlines. Pass these constraints to any agents.
+Authentication, installations, checkpoints, IAM administration, licence probes
+and deployment retain their separate approvals. Return the five prerequisite
+gates and private IAM-team request in chat even when planning documents are approved.
 After file-creation approval, enable only the writing tools needed for that scope.
+Planning-document approval never permits diagnostic captures, temporary files,
+backup copies or command-output files in any directory. Capture BOTH stdout and
+stderr in memory through returned tool output or subprocess pipes; never redirect
+them to filesystem paths during planning. Deleting or redacting a temporary file
+later cannot authorize its creation. Diagnose authentication errors using only
+non-secret categories/status from captured output, not a redaction pipeline.
 
 ## Objective and inputs
 
@@ -83,8 +115,24 @@ requests. Never display, byte-dump, trace or log a credential source, even throu
 a redaction filter. Never use cat, od, xxd, shell tracing or partial secret masks
 to diagnose credentials or shell behavior. Diagnose shell/path issues without
 reading secret bytes; use task-specific variable names that cannot alter PATH.
-During planning, create no temporary scripts, HTTP response files, diagnostic
-files or output redirections, inside or outside the workspace. Perform checks
+Discover and follow the host's installation and privilege policy. Reuse installed
+tools and include only permitted installation methods in a separately approved
+setup plan. If elevated privileges are prohibited, do not request them. Use the
+organization's required package manager and security hooks when applicable.
+Never change system trust, the normal profile or global settings to repair transport.
+Before authenticated checks, discover existing corporate CA configuration from
+non-secret path metadata and installed CLI settings. A wrapper's session CA bundle
+may omit corporate interception roots even when native login works. Preserve TLS
+verification and use the existing corporate CA for the affected request or command
+process only; use an in-memory SSL context or scoped child environment. Do not
+create or install a CA bundle during artifact-free planning. If trust is unclear,
+report transport UNKNOWN and pause. Recheck authenticated API identity and private
+repository access before diagnosing an invalid GitHub token or asking for login:
+an auth-status failure behind a wrapper does not prove the stored credential is
+invalid. Never refresh or replace credentials to bypass an unresolved TLS failure.
+During planning, apart from separately approved native planning documents, create no
+temporary scripts, HTTP response files, diagnostic files or output redirections,
+inside or outside the workspace. Perform checks
 and parse responses in memory. A file-reader or search tool that returns
 credential bytes is disclosure, even if you never quote those bytes afterward.
 If the available planning tools cannot make authenticated requests privately,
@@ -362,19 +410,122 @@ CE teardown; they are not owned resources of this Terraform state.
 ## Private checkpoint and same-session resume
 
 During native planning, return prerequisites and the IAM-team request in chat;
-create no workspace files, downloaded helper or plan.md. This prompt contains
+create no files except the separately approved native planning documents. Do not
+download a helper or create plan.md. This prompt contains
 sufficient instructions to perform the checks without downloading a helper.
 After explicit local setup approval, save an owner-only checkpoint outside the
 workspace with the SHA256 of this exact prompt, caller, Terraform service account,
 service-account project, deployment/quota projects, credential method, completed
-gate observations, outstanding administrator requests, scoped approvals,
+gate observations, outstanding administrator requests, scoped approvals including
+separate planning-file approval and its exact workspace/path scope,
 installation receipts and the original propagation deadline. Store no token, key
 contents, complete IAM policy, credential-bearing response or raw transcript in
 it. Raw failures belong only in separate private evidence with secret handling.
-A checkpoint-only approval authorizes ONLY that checkpoint. It does not authorize
+A checkpoint-only approval authorizes ONLY that checkpoint. Planning-file approval alone
+cannot authorize checkpoint creation. Checkpoint approval does not authorize
 native session-memory plan files, workspace plan.md, scripts or other artifacts.
-Keep the plan and IAM-team request in the conversation until their own approved
-file-creation phase; private storage or storage owned by an agent is not an exemption.
+Keep the plan in chat until its own planning-file approval; always return the
+IAM-team request in chat. Private or agent-owned storage is not an exemption.
+Use exactly the following core JSON field names and structure so checkpoints
+remain readable across platforms and by the helper. Substitute observed values;
+never retain example placeholders or copy example approval/status values as facts.
+Do not rename fields or replace boolean approvals with status objects. The six
+selection fields are strings. If no service account is selected, both service-account
+fields are empty and credential_method is existing-adc; otherwise use the chosen
+method from the enum shown below.
+local_setup records checkpoint-persistence consent ONLY. It never authorizes
+authentication changes, installations, other files or deployment. The approvals
+map contains only these four booleans. Other action scopes require their own
+separately approved receipts; do not invent additional core approval flags.
+planning_scope is null when no planning files are approved; otherwise it is
+{"workspace": "[exact absolute approved workspace]", "paths": ["[exact approved relative file]"]}.
+Copy all approved paths into that list. Record the pending private IAM-team request
+as an object in outstanding_request; use null only when no request is outstanding.
+installation_receipts contains only verified SHA256 digests, never log text.
+propagation_deadline is null before administrator confirmation; on confirmation,
+set it once to confirmation time plus 600 seconds, as numeric UTC Unix seconds,
+BEFORE any propagation polling. Its original confirmation time is deadline minus
+600 seconds. Preserve that deadline across retries and same-session recovery.
+Checkpoint v2 core JSON template:
+```json
+{
+  "schema_version": 2,
+  "prompt_sha256": "[Full SHA256 of this exact canonical prompt]",
+  "selection": {
+    "caller": "[user:email or serviceAccount:email]",
+    "service_account": "[Service-account email, or empty for existing-adc without a service account]",
+    "service_account_project": "[Service-account owning project, or empty when no service account]",
+    "deployment_project": "[Deployment project ID]",
+    "quota_project": "[Quota project ID]",
+    "credential_method": "[existing-adc, impersonated-adc, provider-impersonation or json-key]"
+  },
+  "gates": [
+    {
+      "gate": "identity_selection",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "impersonation_access",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "deployment_permissions",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "apis_quota_project",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "cli_adc_authentication",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    }
+  ],
+  "outstanding_request": null,
+  "approvals": {
+    "local_setup": true,
+    "planning_files": false,
+    "iam_administration": false,
+    "deployment": false
+  },
+  "planning_scope": null,
+  "installation_receipts": [],
+  "propagation_deadline": null
+}
+```
+Write checkpoint schema version 2 and continue reading legacy version 1 without
+inferring planning-file approval. Revalidate workspace/path containment on resume;
+workspace or path changes revoke planning-file and dependent deployment approval.
 Copy the five complete prerequisite rows into the checkpoint, including status,
 reason/evidence, caller, target resource, owner, next action and observation time.
 PASS rows also retain a responsible team and recheck action; required metadata
@@ -398,7 +549,8 @@ prompt hash requires review against the revised scope. Recheck all five gates
 before deployment. Preserve installation receipts: do not repeat approved
 installations on session restart, silently change identities or deploy
 automatically. IAM confirmation, local setup approval and scoped deployment
-approval remain separate. Passing authentication never authorizes deployment.
+approval and planning-file approval remain separate. Passing authentication never
+authorizes deployment. A revised prompt also requires review of Planning-file approval.
 
 ## Plan and approval boundary
 
@@ -556,7 +708,12 @@ Create one n2-standard-8 VM, can_ip_forward=true, 120 GB pd-balanced boot disk,
 pinned image, matching CE tag. NIC 0 is SLO (ens4); NIC 1 is SLI (ens5). Neither
 has access_config. Set VmDnsSetting="ZonalPreferred" and metadata["block-project-ssh-keys"]="true"
 so any optional SSH uses only the explicitly supplied key, never inherited project keys. Do not enable unsupported
-Shielded VM features. VM lifecycle ignores metadata["user-data"] so rotating a
+Shielded VM features. Inspect the pinned image's guestOsFeatures. If it lacks
+UEFI_COMPATIBLE, omit shielded_instance_config entirely; an explicit all-false
+block can produce perpetual drift when the API omits unsupported settings.
+Do not hide that drift with ignore_changes or apply it repeatedly. Propose a
+scoped configuration-only removal and require a fresh no-change plan.
+VM lifecycle ignores metadata["user-data"] so rotating a
 JWT does not implicitly replace a healthy VM. Explicit depends_on must include
 the site, token and SLO NAT so the VM boots with working egress.
 
@@ -565,6 +722,15 @@ provider schema, and create a saved plan. Inspect the saved plan for the approve
 15/16 resources, exact project/zone/image, CIDRs, NIC order, firewall rules, lifecycle
 and absence of unrelated changes. Apply only that inspected saved plan; do not
 apply a recomputed plan. Stop and revise the plan if it exceeds approved scope.
+The registration token can make the entire VM metadata map unknown in a saved
+plan. Check the exact reviewed configuration and its saved-plan references for
+the required static keys, sensitive JWT .content and token-only bootstrap file.
+Record those checks as source-verified and deferred, not proven live values.
+Immediately after apply, privately verify the actual metadata, matching token,
+token-only /etc/vpm/user_data definition with root ownership and 0600 mode, and state sensitivity before
+polling. Missing source proof, unexpected references or known wrong values fail.
+Include durable registration-deadline and poll-state paths in artifact approval;
+write only those approved paths and request missing scope before creating a file.
 
 ## Registration and completion
 
