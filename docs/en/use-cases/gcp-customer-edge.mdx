@@ -53,6 +53,7 @@ Completion requires:
 - Consecutive validated `ONLINE` observations at least 30 seconds apart.
 - Verified `ens4 → SLO` primary and `ens5 → SLI` nonprimary interface roles.
 - A post-registration `terraform plan -detailed-exitcode` returning zero, followed by another `ONLINE` check. A regression resumes the original bounded polling and requires fresh interface and plan evidence. Record Regional Edge connectivity separately.
+- Verified boot-disk capacity/type and guest filesystem/free-space evidence after registration and any bootstrap upgrade reboot. First-boot measurements alone cannot pass the storage gate; keep missing evidence unknown.
 
 When teardown is authorized, inspect and apply a saved destroy plan, then independently prove all owned GCP resources, the temporary marketplace licence probe and both XC site representations are absent. Preserve private evidence until cleanup is verified. Recovery mutations require a reviewed plan.
 

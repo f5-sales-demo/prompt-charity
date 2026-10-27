@@ -25,6 +25,6 @@ and private inputs, without generated Terraform or workflow/remediation hints. A
 and supported continuations; judge preserved authority and deployment outcomes. A changed candidate restarts the
 full matrix: Kiro CLI and Desktop on macOS with Claude Opus 5.5, two consecutive VS Code Copilot Chat runs on macOS
 with Claude Opus 5.5, and Codex CLI on Ubuntu with GPT-6.1 Sol. Independently verify reviewed scope, stable ONLINE,
-SLO/SLI roles, a zero post-registration plan followed by ONLINE, disk evidence and exact owned cleanup. Preserve
+SLO/SLI roles, a zero post-registration plan followed by ONLINE, post-registration guest storage evidence and exact owned cleanup. Preserve
 failed attempts and private raw evidence. Keep the published prompt unchanged until every run passes; retain old
 receipts and publish immutable candidate-specific supporting evidence only.
