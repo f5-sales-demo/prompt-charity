@@ -26,8 +26,8 @@ class LibraryTests(unittest.TestCase):
         (self.root / "prompts").mkdir()
         self.prompt = self.root / "prompts/example.txt"
         self.prompt.write_text(
-            "Work in planning mode. Use read-only investigation. Do not edit files.\n"
-            "Objective: [Project]\nStop after the plan. Require explicit approval.\n"
+            "Objective: [Project]\nUse native planning and read-only discovery.\n"
+            "Present infrastructure scope and cost for approval.\n"
             "After approval implement and check acceptance criteria."
         )
         (self.root / "docs/_imports").write_text(
@@ -71,6 +71,18 @@ class LibraryTests(unittest.TestCase):
             + '<LinkCard href="/prompt-charity/en/use-cases/second/" />'
         )
         self.assertEqual(library.validate(self.root), [])
+
+    def test_missing_read_only_discovery_rejected(self):
+        self.prompt.write_text(self.prompt.read_text().replace("read-only", "live"))
+        self.assertTrue(any("read-only" in e for e in library.validate(self.root)))
+
+    def test_missing_acceptance_criteria_rejected(self):
+        self.prompt.write_text(
+            self.prompt.read_text().replace("acceptance criteria", "results")
+        )
+        self.assertTrue(
+            any("acceptance criteria" in e for e in library.validate(self.root))
+        )
 
     def test_harness_dependency_rejected(self):
         self.prompt.write_text(
