@@ -23,8 +23,9 @@ Plan one dual-interface F5 Distributed Cloud Customer Edge (CE) in an authorized
 - **Inputs:** project, region/zone, unique short prefix, two checked non-overlapping private `/26` ranges, tenant API URL and private credential source. SSH defaults to none. Keep credentials outside chat and Terraform inputs; state, saved plans, metadata and raw evidence remain private.
 
 The default architecture uses one `n2-standard-8` VM without a public IP, separate outside (SLO) and inside (SLI)
-networks, SLO Cloud NAT, and Secure Mesh Site v2 JWT registration. NIC order is `ens4 → SLO`, `ens5 → SLI`. The 120 GB `pd-balanced` boot disk reserves 50% above F5's 80 GB
-Mesh minimum; planning checks current requirements, image size, quota and cost. Verify guest-usable space separately.
+networks, SLO Cloud NAT, and Secure Mesh Site v2 JWT registration. NIC order is `ens4 → SLO`, `ens5 → SLI`.
+Recommend at least 120 GB of `pd-balanced` boot storage per CE for headroom during code upgrades. Increase this when current
+service or image requirements demand it; planning checks quota and cost. Verify guest-usable space separately.
 Omit Shielded VM configuration for non-UEFI images; review token-dependent metadata before apply and verify live values
 privately afterward.
 
