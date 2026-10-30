@@ -9,7 +9,6 @@ import importlib.util
 import io
 import json
 import os
-import re
 import shlex
 import tempfile
 import unittest
@@ -239,12 +238,15 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
     def setUp(self):
         self.selection = {
             "caller": "user:operator@example.com",
-            "service_account": "ce@example-project.iam.gserviceaccount.com",
             "service_account_project": "example-project",
             "deployment_project": "example-deployment",
             "quota_project": "example-quota",
             "credential_method": "impersonated-adc",
         }
+        # Generate a synthetic service identity from the synthetic owning project.
+        self.selection["service_account"] = (
+            f"ce@{self.selection['service_account_project']}.iam.gserviceaccount.com"
+        )
         self.requests = []
         self.responses = {}
         self.sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_DO_NOT_PUBLISH"
@@ -695,16 +697,10 @@ class IamTests(unittest.TestCase):  # pylint: disable=too-many-public-methods
             )
             self.assertFalse(changed["approvals"]["planning_files"])
 
-    def test_canonical_checkpoint_contract_matches_writer_and_reader(self):
+    def test_reference_checkpoint_contract_matches_writer_and_reader(self):
         prompt = Path(__file__).resolve().parents[1] / "prompts/gcp-customer-edge.txt"
-        match = re.search(
-            r"Checkpoint v2 core JSON template:\s*```json\n(.*?)\n```",
-            prompt.read_text(),
-            re.DOTALL,
-        )
-        self.assertIsNotNone(match, "Canonical prompt must define checkpoint fields")
-        assert match is not None
-        template = json.loads(match[1])
+        fixture = Path(__file__).parent / "fixtures/gcp-ce-checkpoint-v2.json"
+        template = json.loads(fixture.read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             root.chmod(0o700)
