@@ -56,7 +56,7 @@ Completion requires:
 - A post-registration `terraform plan -detailed-exitcode` returning zero, followed by another `ONLINE` check. A regression resumes the original bounded polling and requires fresh interface and plan evidence. Record Regional Edge connectivity separately.
 - Verified boot-disk capacity/type and guest filesystem/free-space evidence after registration and any bootstrap upgrade reboot. First-boot measurements alone cannot pass the storage gate; keep missing evidence unknown.
 
-When teardown is authorized, inspect and apply a saved destroy plan, then independently prove all owned GCP resources, the temporary marketplace licence probe and both XC site representations are absent. Preserve private evidence until cleanup is verified. Recovery mutations require a reviewed plan.
+When teardown is authorized, inspect and apply a saved destroy plan, then independently prove all owned GCP resources, including any temporary probes, and both XC site representations are absent. Preserve private evidence until cleanup is verified. Recovery mutations require a reviewed plan.
 
 Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/gcp-customer-edge/fallback/) for an
 optional reference implementation and detailed checks. Its file layout, checkpoint helper and staged execution
@@ -65,4 +65,11 @@ acceptance gates. See [How to use](/prompt-charity/en/#how-to-use) for the commo
 
 ## Qualification
 
-Qualification of this candidate is pending. Publication requires Kiro CLI, Kiro Desktop and two consecutive VS Code GitHub Copilot Chat runs on macOS with Claude Opus 5.5, plus Codex CLI on Ubuntu with GPT-6.1 Sol. Supporting receipts will identify the exact candidate and independently verified deployment, disk and cleanup gates.
+The 1,820-word candidate (`5484a583e0a3…`) passed native qualification: [Kiro
+CLI](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/kiro-cli-macos.json), [Kiro
+Desktop](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/kiro-desktop-macos.json) and two consecutive VS Code Copilot Chat runs
+([7](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/vscode-copilot-macos-run-7.json),
+[8](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/vscode-copilot-macos-run-8.json)) on macOS with Claude Opus 5.5, plus [Codex CLI on
+Ubuntu](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/codex-cli-ubuntu.json) with GPT-6.1 Sol. Receipts record installed versions, preserved
+native handoffs, reviewed scope, registration, interface roles, post-registration zero-change plans, guest storage and complete owned cleanup. Raw
+evidence remains private.
