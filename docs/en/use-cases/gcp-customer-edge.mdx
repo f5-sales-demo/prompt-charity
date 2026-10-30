@@ -23,25 +23,20 @@ Plan one dual-interface F5 Distributed Cloud Customer Edge (CE) in an authorized
 - **Inputs:** project, region/zone, unique short prefix, two checked non-overlapping private `/26` ranges, tenant API URL and private credential source. SSH defaults to none. Keep credentials outside chat and Terraform inputs; state, saved plans, metadata and raw evidence remain private.
 
 The default architecture uses one `n2-standard-8` VM without a public IP, separate outside (SLO) and inside (SLI)
-networks, SLO Cloud NAT, and Secure Mesh Site v2 JWT registration. NIC order is `ens4 → SLO`, `ens5 → SLI`. The saved
-plan creates 15 resources, or 16 with optional SSH. The 120 GB `pd-balanced` boot disk reserves 50% above F5's 80 GB
-Mesh minimum; planning checks current requirements, image size, quota and cost. Verify guest-usable space separately.
+networks, SLO Cloud NAT, and Secure Mesh Site v2 JWT registration. NIC order is `ens4 → SLO`, `ens5 → SLI`.
+Recommend at least 120 GB of `pd-balanced` boot storage per CE for headroom during code upgrades. Increase this when current
+service or image requirements demand it; planning checks quota and cost. Verify guest-usable space separately.
 Omit Shielded VM configuration for non-UEFI images; review token-dependent metadata before apply and verify live values
 privately afterward.
 
 ## Copy the complete prompt
 
-Enable your agent's planning mode, copy the whole prompt, and replace bracketed inputs or request checked proposals. Review the discovered environment and scoped plan before approval.
+Copy the whole prompt and replace bracketed inputs or request checked proposals. Use your harness's native planning and approval controls. Review infrastructure scope, cost, identities, provider/image pins and verification before approving deployment.
 
-- **Planning:** read-only and artifact-free by default. Required planning documents need separate affirmative approval naming the absolute workspace and every relative path. Cancellation, silence, timeouts and automatic tool permissions grant no consent. Workflow agents inherit only the approved scope.
-- **Setup and deployment:** all five IAM gates and a private administrator request appear when blocked. Administrator
-  IAM/API changes, local authentication, installations, checkpoints, planning files, the licence probe and deployment
-  retain separate approval boundaries. Access rechecks run for at most ten minutes; auth-status output alone does not
-  prove invalid credentials.
-- **Resume:** checkpoint schema v2 binds planning-file consent to workspace and paths, reads legacy v1, rejects
-  traversal/symlink escapes, and invalidates dependent approval when scope changes. Fixed JSON fields and boolean
-  approvals prevent checkpoint consent from implying other setup. Preserve and repair output-limit failures, verify
-  actual files, and follow host privilege and corporate trust policy without changing system settings.
+Let the agent choose Terraform organization and execution strategy within your workspace conventions. Native
+planning artifacts and supported handoffs are part of the workflow. Preserve approved scope, identities,
+ownership and original deadlines across continuation; verify live access before dependent operations.
+Administrator IAM/API changes remain separate from CE deployment authority.
 
 <a href={`data:text/plain;charset=utf-8;base64,${Buffer.from(prompt, 'utf8').toString('base64')}`} download="gcp-customer-edge.txt">Download the plain-text prompt</a>
 
@@ -59,18 +54,22 @@ Completion requires:
 - Consecutive validated `ONLINE` observations at least 30 seconds apart.
 - Verified `ens4 → SLO` primary and `ens5 → SLI` nonprimary interface roles.
 - A post-registration `terraform plan -detailed-exitcode` returning zero, followed by another `ONLINE` check. A regression resumes the original bounded polling and requires fresh interface and plan evidence. Record Regional Edge connectivity separately.
+- Verified boot-disk capacity/type and guest filesystem/free-space evidence after registration and any bootstrap upgrade reboot. First-boot measurements alone cannot pass the storage gate; keep missing evidence unknown.
 
-When teardown is authorized, inspect and apply a saved destroy plan, then independently prove all owned GCP resources, the temporary marketplace licence probe and both XC site representations are absent. Preserve private evidence until cleanup is verified. Recovery mutations require a reviewed plan.
+When teardown is authorized, inspect and apply a saved destroy plan, then independently prove all owned GCP resources, including any temporary probes, and both XC site representations are absent. Preserve private evidence until cleanup is verified. Recovery mutations require a reviewed plan.
 
-Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/gcp-customer-edge/fallback/) for the nine Terraform files and detailed checks if your agent cannot execute the workflow. See [How to use](/prompt-charity/en/#how-to-use) for the common prompt workflow.
+Use the [step-by-step fallback guide](/prompt-charity/en/use-cases/gcp-customer-edge/fallback/) for an
+optional reference implementation and detailed checks. Its file layout, checkpoint helper and staged execution
+are examples; native runs may use another organization that preserves the deployment requirements and
+acceptance gates. See [How to use](/prompt-charity/en/#how-to-use) for the common prompt workflow.
 
 ## Qualification
 
-The current prompt passed Kiro CLI, Kiro Desktop and two VS Code GitHub Copilot Chat runs on macOS with Claude Opus 5.5
-on 2026-10-26. Each verified deployment, stable `ONLINE` status, SLO/SLI roles, a zero-change post-registration Terraform
-plan and independent cleanup. Recheck prerequisites and provider/image versions for each deployment.
-
-Supporting receipts: [Kiro CLI](/prompt-charity/receipts/gcp-customer-edge/kiro-cli-macos.json),
-[Kiro Desktop](/prompt-charity/receipts/gcp-customer-edge/kiro-desktop-macos.json),
-[Copilot run 1](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-3.json) and
-[Copilot run 2](/prompt-charity/receipts/gcp-customer-edge/vscode-copilot-macos-run-4.json).
+The 1,820-word candidate (`5484a583e0a3…`) passed native qualification: [Kiro
+CLI](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/kiro-cli-macos.json), [Kiro
+Desktop](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/kiro-desktop-macos.json) and two consecutive VS Code Copilot Chat runs
+([7](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/vscode-copilot-macos-run-7.json),
+[8](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/vscode-copilot-macos-run-8.json)) on macOS with Claude Opus 5.5, plus [Codex CLI on
+Ubuntu](/prompt-charity/receipts/gcp-customer-edge/5484a583e0a3/codex-cli-ubuntu.json) with GPT-6.1 Sol. Receipts record installed versions, preserved
+native handoffs, reviewed scope, registration, interface roles, post-registration zero-change plans, guest storage and complete owned cleanup. Raw
+evidence remains private.

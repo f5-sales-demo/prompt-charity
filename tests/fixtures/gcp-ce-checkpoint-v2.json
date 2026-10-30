@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "prompt_sha256": "[Full SHA256 of this exact canonical prompt]",
+  "selection": {
+    "caller": "[user:email or serviceAccount:email]",
+    "service_account": "[Service-account email, or empty for existing-adc without a service account]",
+    "service_account_project": "[Service-account owning project, or empty when no service account]",
+    "deployment_project": "[Deployment project ID]",
+    "quota_project": "[Quota project ID]",
+    "credential_method": "[existing-adc, impersonated-adc, provider-impersonation or json-key]"
+  },
+  "gates": [
+    {
+      "gate": "identity_selection",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "impersonation_access",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "deployment_permissions",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "apis_quota_project",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    },
+    {
+      "gate": "cli_adc_authentication",
+      "status": "UNKNOWN",
+      "reason": "[Actual evidence and remaining uncertainty]",
+      "caller": "[Full caller principal]",
+      "target_resource": "[Exact target resource]",
+      "owner": "[Responsible team]",
+      "next_action": "[Recheck or remediation action]",
+      "observed_at": "[UTC observation time]"
+    }
+  ],
+  "outstanding_request": null,
+  "approvals": {
+    "local_setup": true,
+    "planning_files": false,
+    "iam_administration": false,
+    "deployment": false
+  },
+  "planning_scope": null,
+  "installation_receipts": [],
+  "propagation_deadline": null
+}

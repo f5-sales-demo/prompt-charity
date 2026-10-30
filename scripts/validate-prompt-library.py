@@ -62,14 +62,11 @@ def canonical_contract(
             continue
         block = (root / canonical).read_text(encoding="utf-8")
         for required in [
-            "planning mode",
             "read-only",
-            "Do not edit files",
             "acceptance criteria",
-            "Stop after the plan",
             "approval",
         ]:
-            if required not in block:
+            if required not in block.lower():
                 errors.append(f"{page}: missing {required} in canonical prompt")  # noqa: PERF401 - keep each contract failure explicit
         if not re.search(r"\[[^\]]+\]", block):
             errors.append(f"{page}: no input placeholders")

@@ -1,6 +1,6 @@
 ---
 title: GCP Customer Edge fallback guide
-description: A step-by-step Terraform recipe with the same planning, deployment and cleanup gates as the customer prompt.
+description: An optional Terraform reference implementation for the customer prompt deployment and cleanup outcomes.
 sidebar:
   hidden: true
 ---
@@ -23,7 +23,9 @@ import support from '../../../_data/gcp-customer-edge/gcp-ce-support.py?raw';
 This guide supports [the complete customer prompt](/prompt-charity/en/use-cases/gcp-customer-edge/). It
 creates one Secure Mesh Site v2 with separate SLO and SLI VPCs, outbound SLO NAT and one `n2-standard-8` VM without a
 public IP. It excludes HA and workloads. The nine files below are a reviewed starting recipe; choose customer inputs and
-re-resolve current release/image identities before deployment.
+re-resolve current release/image identities before deployment. This optional recipe uses a specific file layout,
+checkpoint helper and staged execution. Those conventions apply to this reference implementation; native workflows
+may organize configuration and continuity differently while preserving the customer prompt requirements.
 
 ## 1. Discover and review before changing anything
 
@@ -45,8 +47,8 @@ Use the [complete prompt's IAM preflight](/prompt-charity/en/use-cases/gcp-custo
 Identify the caller, Terraform identity, service-account owning project, deployment project, quota project and credential
 method. Return five gates: identity selection, impersonation access, deployment permissions, APIs/quota project and
 CLI/ADC authentication. Each reports `PASS`, `BLOCKED` or `UNKNOWN`, evidence, observation time, owner and next action.
-Planning returns the table and one private IAM-team request in chat; it creates no files, including `plan.md` or
-temporary HTTP responses. Keep tokens in one process using an HTTP library; never expand them into command arguments
+Return the prerequisite evidence and one private IAM-team request through the native workflow. Keep discovery
+read-only with respect to infrastructure; native planning artifacts follow harness controls and workspace conventions. Keep tokens in one process using an HTTP library; never expand them into command arguments
 such as `curl` headers or token query URLs. File readers must not return credential bytes into the conversation.
 
 Test effective permissions on the exact resource as the identity being checked. The caller needs
@@ -104,40 +106,13 @@ exact owned networks, then inspect and apply a saved plan for the remaining ten 
 fifteen resources; optional SSH adds one to the second plan. Stop on an incompatible inherited
 rule. Do not bypass policies or use an unreviewed target/recomputed plan.
 
-After explicit local setup approval, save an owner-only checkpoint outside the workspace containing the canonical prompt
-hash, selected identities/projects/method, gate observations, outstanding requests, separate approvals, installation
-receipts and propagation deadline. Never save credential values or full policies.
-Checkpoint-only approval permits only that checkpoint, not a native session-memory `plan.md` or planning documents.
-Keep planning read-only and artifact-free by default. Planning-file consent never permits temporary diagnostics,
-backups or stdout/stderr files. Capture both streams in memory and report only non-secret categories/status;
-redacting or deleting a capture later does not authorize creating it. Before any native planning documents are created, offer a
-separate planning-file approval naming the absolute workspace and exact relative paths. Use only the documents
-and metadata required by the selected platform's structured planning workflow. Approval includes only those
-named files and necessary parent directories. Require an explicit affirmative response approving that exact scope.
-Cancelled, dismissed, declined, unanswered or timed-out
-interactions grant no approval. Automatic tool permissions and workflow transitions cannot substitute for scoped
-consent; keep an ambiguous planning outcome in chat and pause file creation and writing-agent dispatch until
-explicit planning-file approval. Workflow agents inherit that scope; implementation tasks wait for deployment
-approval. Keep every acceptance gate in concise documents and adapt complete write arguments to the
-platform's supported limits. Verify actual files; retain and repair failed requests instead of repeating them
-unchanged. A preview never proves a write. Reject traversal and symlink escapes and inventory hidden files at
-each approval boundary. Return all five gates and the private IAM-team request in chat. Authentication,
-installations, checkpoints, IAM administration, licence probes and deployment retain separate approvals.
-Planning-file approval alone cannot authorize checkpoint creation.
-Automatic platform chat/tool history is allowed. The helper provides
-`save_iam_checkpoint` and `resume_iam_checkpoint` for this protocol; resume always obtains fresh observations and
-invalidates deployment approval when selection or prompt changes. Checkpoint schema version 2 records separate
-`planning_files` approval and `planning_scope` with `workspace` and an allowlisted `paths` list. Pass that scope as
-the keyword argument `planning_scope` to both helper functions; they validate containment without creating files.
-Use the canonical prompt's JSON template for all platforms. The core fields are `schema_version`,
-`prompt_sha256`, `selection`, `gates`, `outstanding_request`, `approvals`, `planning_scope`,
-`installation_receipts` and `propagation_deadline`. The six string selection fields are `caller`,
-`service_account`, `service_account_project`, `deployment_project`, `quota_project` and `credential_method`.
-The approval map contains only boolean `local_setup`, `planning_files`, `iam_administration` and `deployment`;
-`local_setup` records checkpoint persistence only. It cannot authorize other setup. Planning scope is null or
-an object containing the exact `workspace` and approved `paths`. Use the five gate identifiers and row fields
-from the template. Preserve the numeric Unix deadline: first administrator confirmation plus 600 seconds.
-Do not rename fields, nest status objects in the boolean approval map or copy placeholder values.
+The optional checkpoint helper retains its version 2 JSON contract, private persistence approval and scoped
+planning-file consent for compatibility with existing clients. These helper-specific fields and approval flags
+do not define a universal native workflow. The writer/reader contract fixture is at
+`tests/fixtures/gcp-ce-checkpoint-v2.json` in the repository; the helper functions validate the chosen scope
+without creating planning files. Preserve original identities, approved scope and deadlines when continuing.
+Native handoffs may use their own persistence format.
+
 Legacy version 1 remains readable and never implies planning-file approval. Workspace/path changes revoke planning-file and
 dependent deployment approval; resume revalidates existing path links. Prompt changes also revoke planning approval.
 Preserve approved installation receipts across
@@ -206,7 +181,7 @@ probe. All following steps belong to that approved implementation.
 On an MDM-managed Mac, use no sudo or privilege requests. Reuse installed tools; any approved nonprivileged
 installation must use the IT-controlled brew. Diagnose wrapper TLS failures using existing corporate CA path
 metadata and CLI settings, with the existing trust source scoped to the affected process or an in-memory SSL
-context. Preserve verification and system trust; create no CA files during artifact-free planning. Recheck the
+context. Preserve verification and system trust; use native planning controls for task artifacts. Recheck the
 authenticated API identity and private repository access before inferring invalid credentials from auth-status
 output or requesting another login.
 
@@ -258,8 +233,7 @@ a failed probe as approval to alter marketplace policy.
 
 After approval, use `terraform/` and, when enabled, `docs/` relative to the active private workspace. Confirm the
 Terraform files, saved plan binaries and review JSON under `terraform/plans/`, and any generated `docs/terraform.md`
-appear in its explorer. Keep these artifacts private with permissions instead of hiding them in a sibling directory. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Planning
-creates no workspace files except separately approved native planning documents. The defaults intentionally require explicit project, region, zone,
+appear in its explorer. Keep these reference artifacts private with restrictive permissions. Keep credentials outside it; checkpoint and provider scratch may remain outside the workspace. Native planning artifacts follow harness controls and workspace conventions. The defaults intentionally require explicit project, region, zone,
 CIDRs and image. Fill those inputs with checked customer values. No XC token belongs in `.tfvars` or outputs. All state,
 saved plans, VM metadata and raw logs may carry secrets and must remain private. The registration JWT is wrapped with
 `sensitive()`; that redacts presentation but does not encrypt state or VM metadata.
@@ -267,7 +241,7 @@ saved plans, VM metadata and raw logs may carry secrets and must remain private.
 The registration token can leave the entire VM metadata map unknown in a saved plan. Verify the reviewed source
 and saved-plan references, then require private live checks of the static keys, matching token-only bootstrap,
 root ownership, 0600 mode and state sensitivity immediately after apply. An unknown map does not waive those checks.
-Include durable registration-deadline and poll-state paths in artifact approval before writing them.
+Preserve the original registration deadline and polling evidence through native continuation.
 
 Check terraform-docs first. If installed, generate `docs/terraform.md` during approved file preparation without another
 docs-choice question. If missing, first ask whether generated docs are wanted and explain that yes requires installing
@@ -289,8 +263,8 @@ logs and upgrades. It is not an F5 recommendation for exactly 120 GB. During pla
 `max(120, ceil(1.5 * max(current F5 minimum, image diskSizeGb) / 10) * 10)` GB and increase for measured workload needs.
 Verify the selected zone, storage quota and current rate. Persistent Disk size is independent of the N2 machine flavor;
 [Google's capacity guidance](https://cloud.google.com/compute/docs/disks/resize-persistent-disk) supports 120 GB.
-The `us-east4` zonal Balanced PD catalog rate checked on 2026-10-23 is $0.11/GiB-month: about $13.20/month for 120 GB,
-$4.40/month more than 80 GB, excluding snapshots and taxes. Recheck regional pricing during planning.
+Use [Google's current disk pricing](https://cloud.google.com/compute/disks-image-pricing) for the selected region
+and include storage, VM and NAT costs in the reviewed estimate.
 
 The cloud-init includes read-only `df`/`lsblk` diagnostics between `CE_DISK_DIAGNOSTICS_BEGIN/END` serial markers.
 After registration, independently check the actual GCP disk capacity/type and supported guest telemetry or these
